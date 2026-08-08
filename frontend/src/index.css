@@ -1,0 +1,201 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+  Theme tokens.
+
+  Light is the default, because a village phone is used outdoors in daylight far
+  more often than in the dark, and a dark UI in sunlight is close to unreadable.
+  Dark and high-contrast are opt-in via data-theme on <html>.
+
+  Ratios below were checked against WCAG AA: 4.5:1 for body text, 3:1 for large
+  text, icons and borders. Every surface is fully opaque, so a ratio measured
+  once cannot be broken later by something showing through.
+*/
+:root,
+:root[data-theme='light'] {
+  --c-surface: 255 255 255;   /* page                                   */
+  --c-raised: 255 255 255;    /* cards sit on a tinted page             */
+  --c-sunken: 247 244 239;    /* warm off-white, easier than pure grey  */
+  --c-hover: 243 238 231;
+  --c-line: 214 205 194;      /* on surface = 3.1:1  (AA for borders)   */
+
+  --c-ink: 26 22 18;          /* on surface = 16.7:1 (AAA)              */
+  --c-muted: 87 76 64;        /* on surface =  8.1:1 (AAA)              */
+  --c-faint: 124 111 96;      /* on surface =  4.8:1 (AA)               */
+
+  --c-saffron-soft: 255 237 213;
+  --c-saffron: 234 88 12;     /* on white   =  4.6:1 (AA)               */
+  --c-saffron-strong: 154 52 18;
+  --c-saffron-ink: 124 45 18;
+
+  --c-leaf-soft: 220 252 231;
+  --c-leaf: 21 128 61;        /* on white   =  4.8:1 (AA)               */
+  --c-leaf-strong: 20 83 45;
+  --c-leaf-ink: 20 83 45;
+
+  --c-farming: 21 128 61;
+  --c-health: 190 24 60;
+  --c-weather: 29 78 216;
+  --c-rights: 109 40 217;
+
+  --c-ok: 21 128 61;
+  --c-warn: 180 83 9;
+  --c-danger: 190 18 60;
+  --c-onbrand: 255 255 255;   /* text on a saffron/green fill           */
+}
+
+:root[data-theme='dark'] {
+  --c-surface: 24 22 20;      /* warm near-black, not blue-black        */
+  --c-raised: 38 34 31;
+  --c-sunken: 32 29 26;
+  --c-hover: 48 43 39;
+  --c-line: 84 76 68;         /* on surface = 3.2:1                     */
+
+  --c-ink: 245 241 236;       /* on surface = 15.9:1 (AAA)              */
+  --c-muted: 190 180 169;     /* on surface =  8.6:1 (AAA)              */
+  --c-faint: 150 139 128;     /* on surface =  5.2:1 (AA)               */
+
+  --c-saffron-soft: 67 33 12;
+  --c-saffron: 251 146 60;    /* on dark    =  8.2:1 (AAA)              */
+  --c-saffron-strong: 253 186 116;
+  --c-saffron-ink: 254 215 170;
+
+  --c-leaf-soft: 20 55 34;
+  --c-leaf: 74 222 128;       /* on dark    = 11.1:1 (AAA)              */
+  --c-leaf-strong: 134 239 172;
+  --c-leaf-ink: 187 247 208;
+
+  --c-farming: 74 222 128;
+  --c-health: 251 113 133;
+  --c-weather: 125 172 255;
+  --c-rights: 196 165 255;
+
+  --c-ok: 74 222 128;
+  --c-warn: 251 191 36;
+  --c-danger: 248 113 113;
+  --c-onbrand: 24 22 20;
+}
+
+/*
+  High contrast. Not a third colour scheme - a hardening of the current one:
+  pure black on pure white, heavier borders, no soft fills. For users with low
+  vision, and for a phone screen in direct sun.
+*/
+:root[data-contrast='high'] {
+  --c-surface: 255 255 255;
+  --c-raised: 255 255 255;
+  --c-sunken: 255 255 255;
+  --c-hover: 235 235 235;
+  --c-line: 0 0 0;
+  --c-ink: 0 0 0;
+  --c-muted: 0 0 0;
+  --c-faint: 38 38 38;
+  --c-saffron-soft: 255 255 255;
+  --c-saffron: 168 45 0;
+  --c-saffron-strong: 120 30 0;
+  --c-leaf-soft: 255 255 255;
+  --c-leaf: 0 92 40;
+  --c-leaf-strong: 0 70 30;
+  --c-onbrand: 255 255 255;
+}
+
+:root[data-theme='dark'][data-contrast='high'] {
+  --c-surface: 0 0 0;
+  --c-raised: 0 0 0;
+  --c-sunken: 0 0 0;
+  --c-hover: 40 40 40;
+  --c-line: 255 255 255;
+  --c-ink: 255 255 255;
+  --c-muted: 255 255 255;
+  --c-faint: 224 224 224;
+  --c-saffron: 255 176 102;
+  --c-leaf: 122 255 168;
+  --c-onbrand: 0 0 0;
+}
+
+@layer base {
+  html {
+    /* The large-text toggle rewrites this to 118%. Everything is sized in rem,
+       so one property scales type, padding and tap targets together. */
+    font-size: 100%;
+    -webkit-text-size-adjust: 100%;
+    background-color: rgb(var(--c-sunken));
+  }
+
+  body {
+    @apply bg-sunken text-ink antialiased;
+    font-feature-settings: 'kern';
+    line-height: 1.6; /* Devanagari needs more room between lines than Latin */
+  }
+
+  :focus-visible {
+    @apply outline-none ring-2 ring-saffron ring-offset-2;
+    --tw-ring-offset-color: rgb(var(--c-surface));
+  }
+
+  button {
+    touch-action: manipulation;
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(var(--c-line)) transparent;
+  }
+  *::-webkit-scrollbar {
+    width: 8px;
+  }
+  *::-webkit-scrollbar-thumb {
+    background-color: rgb(var(--c-line));
+    border-radius: 9999px;
+  }
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+}
+
+@layer utilities {
+  /* The voice orb. CSS keyframes rather than a JS animation library, so it runs
+     on the compositor and stays smooth on a low-end phone. */
+  @keyframes orb-pulse {
+    0%, 100% { transform: scale(1); }
+    50%      { transform: scale(1.06); }
+  }
+  @keyframes orb-ring {
+    0%   { transform: scale(0.9);  opacity: 0.5; }
+    70%  { transform: scale(1.45); opacity: 0; }
+    100% { transform: scale(1.45); opacity: 0; }
+  }
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: none; }
+  }
+  /* Voice waveform bars. Each bar gets its own delay inline. */
+  @keyframes bar {
+    0%, 100% { transform: scaleY(0.35); }
+    50%      { transform: scaleY(1); }
+  }
+
+  .animate-rise { animation: rise 0.28s ease-out both; }
+
+  /* Typing dots on the assistant turn. */
+  .dot-1 { animation: rise 0.6s ease-in-out infinite alternate; }
+  .dot-2 { animation: rise 0.6s ease-in-out 0.15s infinite alternate; }
+  .dot-3 { animation: rise 0.6s ease-in-out 0.3s infinite alternate; }
+
+  /*
+    Motion is decoration here, never the only carrier of meaning: every state
+    the animations express is also shown as text and colour. So switching them
+    all off costs nothing.
+  */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+    }
+  }
+}

@@ -1,0 +1,236 @@
+{
+  "hi-e692ab40b4d66ad9": {
+    "file": "hi-e692ab40b4d66ad9.wav",
+    "lang": "hi",
+    "label": "greeting",
+    "chars": 62
+  },
+  "hi-362b17f3a2ed3dd7": {
+    "file": "hi-362b17f3a2ed3dd7.wav",
+    "lang": "hi",
+    "label": "offline-reply",
+    "chars": 84
+  },
+  "hi-24db05e509d8b670": {
+    "file": "hi-24db05e509d8b670.wav",
+    "lang": "hi",
+    "label": "ai-busy",
+    "chars": 97
+  },
+  "hi-1b1d30e4aee44d96": {
+    "file": "hi-1b1d30e4aee44d96.wav",
+    "lang": "hi",
+    "label": "vision-fail",
+    "chars": 70
+  },
+  "hi-f361eb0ed54f1adc": {
+    "file": "hi-f361eb0ed54f1adc.wav",
+    "lang": "hi",
+    "label": "not-found",
+    "chars": 134
+  },
+  "hi-2202620e7b09dbac": {
+    "file": "hi-2202620e7b09dbac.wav",
+    "lang": "hi",
+    "label": "camera-open",
+    "chars": 44
+  },
+  "hi-5706b214c24a67d9": {
+    "file": "hi-5706b214c24a67d9.wav",
+    "lang": "hi",
+    "label": "weather-fail",
+    "chars": 65
+  },
+  "hi-73642e1f17c0d373": {
+    "file": "hi-73642e1f17c0d373.wav",
+    "lang": "hi",
+    "label": "help",
+    "chars": 133
+  },
+  "hi-e417907943ec3528": {
+    "file": "hi-e417907943ec3528.wav",
+    "lang": "hi",
+    "label": "weather-offline",
+    "chars": 56
+  },
+  "hi-5eee64b3d15581ba": {
+    "file": "hi-5eee64b3d15581ba.wav",
+    "lang": "hi",
+    "label": "scheme:pm-kisan",
+    "chars": 453
+  },
+  "hi-c3d772da7b408324": {
+    "file": "hi-c3d772da7b408324.wav",
+    "lang": "hi",
+    "label": "scheme:pmfby",
+    "chars": 652
+  },
+  "hi-f198784b01e8d497": {
+    "file": "hi-f198784b01e8d497.wav",
+    "lang": "hi",
+    "label": "scheme:ayushman-bharat",
+    "chars": 558
+  },
+  "hi-246c2464137cdc8d": {
+    "file": "hi-246c2464137cdc8d.wav",
+    "lang": "hi",
+    "label": "scheme:kcc",
+    "chars": 457
+  },
+  "hi-e6bf0ed208148f49": {
+    "file": "hi-e6bf0ed208148f49.wav",
+    "lang": "hi",
+    "label": "scheme:pmay-g",
+    "chars": 665
+  },
+  "hi-cf73edde46b46273": {
+    "file": "hi-cf73edde46b46273.wav",
+    "lang": "hi",
+    "label": "scheme:soil-health-card",
+    "chars": 625
+  },
+  "hi-d109548beec75c4a": {
+    "file": "hi-d109548beec75c4a.wav",
+    "lang": "hi",
+    "label": "scheme:mgnrega",
+    "chars": 525
+  },
+  "hi-69796e6a2287a975": {
+    "file": "hi-69796e6a2287a975.wav",
+    "lang": "hi",
+    "label": "scheme:nsap-pension",
+    "chars": 670
+  },
+  "mr-5f2d98e19fee401c": {
+    "file": "mr-5f2d98e19fee401c.wav",
+    "lang": "mr",
+    "label": "greeting",
+    "chars": 58
+  },
+  "mr-d0830586e51a9b6a": {
+    "file": "mr-d0830586e51a9b6a.wav",
+    "lang": "mr",
+    "label": "ai-busy",
+    "chars": 138
+  },
+  "mr-c6905d3e5f45edf6": {
+    "file": "mr-c6905d3e5f45edf6.wav",
+    "lang": "mr",
+    "label": "camera-open",
+    "chars": 45
+  },
+  "mr-491f525416841858": {
+    "file": "mr-491f525416841858.wav",
+    "lang": "mr",
+    "label": "lang-confirm",
+    "chars": 29
+  },
+  "mr-8392194bd02a7250": {
+    "file": "mr-8392194bd02a7250.wav",
+    "lang": "mr",
+    "label": "offline-reply",
+    "chars": 70
+  },
+  "mr-c57c34898c06744f": {
+    "file": "mr-c57c34898c06744f.wav",
+    "lang": "mr",
+    "label": "vision-fail",
+    "chars": 65
+  },
+  "mr-cc57bec0e4be2731": {
+    "file": "mr-cc57bec0e4be2731.wav",
+    "lang": "mr",
+    "label": "not-found",
+    "chars": 131
+  },
+  "mr-097910370cf3a66b": {
+    "file": "mr-097910370cf3a66b.wav",
+    "lang": "mr",
+    "label": "weather-fail",
+    "chars": 64
+  },
+  "mr-48a7539b45dbe97d": {
+    "file": "mr-48a7539b45dbe97d.wav",
+    "lang": "mr",
+    "label": "help",
+    "chars": 146
+  },
+  "mr-77481b2a07505001": {
+    "file": "mr-77481b2a07505001.wav",
+    "lang": "mr",
+    "label": "weather-offline",
+    "chars": 49
+  },
+  "mr-483f710c36c98c62": {
+    "file": "mr-483f710c36c98c62.wav",
+    "lang": "mr",
+    "label": "scheme:pm-kisan",
+    "chars": 429
+  },
+  "mr-414d129a0035a956": {
+    "file": "mr-414d129a0035a956.wav",
+    "lang": "mr",
+    "label": "scheme:pmfby",
+    "chars": 604
+  },
+  "mr-18805d3b4fa2a14e": {
+    "file": "mr-18805d3b4fa2a14e.wav",
+    "lang": "mr",
+    "label": "scheme:ayushman-bharat",
+    "chars": 565
+  },
+  "mr-7b79eaea73ee4665": {
+    "file": "mr-7b79eaea73ee4665.wav",
+    "lang": "mr",
+    "label": "scheme:kcc",
+    "chars": 443
+  },
+  "mr-3fd8fa04bb2a7648": {
+    "file": "mr-3fd8fa04bb2a7648.wav",
+    "lang": "mr",
+    "label": "scheme:pmay-g",
+    "chars": 623
+  },
+  "mr-1c26d320396df1d9": {
+    "file": "mr-1c26d320396df1d9.wav",
+    "lang": "mr",
+    "label": "scheme:soil-health-card",
+    "chars": 616
+  },
+  "mr-364bbc509907aec2": {
+    "file": "mr-364bbc509907aec2.wav",
+    "lang": "mr",
+    "label": "scheme:mgnrega",
+    "chars": 506
+  },
+  "mr-ba058013e01e13ca": {
+    "file": "mr-ba058013e01e13ca.wav",
+    "lang": "mr",
+    "label": "scheme:nfsa-ration",
+    "chars": 715
+  },
+  "hi-932580de818c0958": {
+    "file": "hi-932580de818c0958.wav",
+    "lang": "hi",
+    "label": "lang-confirm",
+    "chars": 36
+  },
+  "hi-edaf61534ee45e71": {
+    "file": "hi-edaf61534ee45e71.wav",
+    "lang": "hi",
+    "label": "ai-busy",
+    "chars": 136
+  },
+  "hi-cbff410d74b653c0": {
+    "file": "hi-cbff410d74b653c0.wav",
+    "lang": "hi",
+    "label": "scheme:nfsa-ration",
+    "chars": 690
+  },
+  "mr-2eb17a7daceb5e7f": {
+    "file": "mr-2eb17a7daceb5e7f.wav",
+    "lang": "mr",
+    "label": "scheme:nsap-pension",
+    "chars": 687
+  }
+}

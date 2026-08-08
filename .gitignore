@@ -1,0 +1,36 @@
+# ── Secrets ────────────────────────────────────────────────────────────────
+# .env holds real API keys and must never be committed. .env.example ships in
+# its place with placeholders only.
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+secrets.json
+
+# ── Python ─────────────────────────────────────────────────────────────────
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+
+# ── Node ───────────────────────────────────────────────────────────────────
+node_modules/
+dist/
+.vite/
+npm-debug.log*
+
+# ── Editors / OS ───────────────────────────────────────────────────────────
+.vscode/
+.idea/
+Thumbs.db
+.DS_Store
+
+# ── Deployment ─────────────────────────────────────────────────────────────
+.vercel
+
+# NOTE: backend/data/ and backend/audio_cache/ ARE committed on purpose.
+# They are the verified scheme database and the offline voice recordings — the
+# app's offline guarantees depend on them shipping with the code.

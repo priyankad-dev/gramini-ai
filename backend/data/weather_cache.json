@@ -1,0 +1,182 @@
+{
+  "18.52,73.86": {
+    "location": "Pune",
+    "latitude": 18.5204,
+    "longitude": 73.8567,
+    "fetched_at": 1786153260.1169684,
+    "weather_data": {
+      "place": "Pune",
+      "admin": null,
+      "temp_now": 23,
+      "humidity": 91,
+      "code": 3,
+      "today_max": 28,
+      "today_min": 23,
+      "rain_today": 99,
+      "rain_tomorrow": 86,
+      "source": "Open-Meteo"
+    }
+  },
+  "18.99,75.76": {
+    "location": "Beed",
+    "latitude": 18.98921,
+    "longitude": 75.75634,
+    "fetched_at": 1786153260.7364056,
+    "weather_data": {
+      "place": "Beed",
+      "admin": null,
+      "temp_now": 24,
+      "humidity": 84,
+      "code": 3,
+      "today_max": 30,
+      "today_min": 23,
+      "rain_today": 83,
+      "rain_tomorrow": 49,
+      "source": "Open-Meteo"
+    }
+  },
+  "27.58,77.7": {
+    "location": "Vrindāvan",
+    "latitude": 27.58105,
+    "longitude": 77.69662,
+    "fetched_at": 1786153261.3215072,
+    "weather_data": {
+      "place": "Vrindāvan",
+      "admin": null,
+      "temp_now": 27,
+      "humidity": 94,
+      "code": 1,
+      "today_max": 32,
+      "today_min": 26,
+      "rain_today": 94,
+      "rain_tomorrow": 84,
+      "source": "Open-Meteo"
+    }
+  },
+  "23.18,75.78": {
+    "location": "Ujjain",
+    "latitude": 23.18239,
+    "longitude": 75.77643,
+    "fetched_at": 1786153261.9142563,
+    "weather_data": {
+      "place": "Ujjain",
+      "admin": null,
+      "temp_now": 24,
+      "humidity": 92,
+      "code": 3,
+      "today_max": 30,
+      "today_min": 24,
+      "rain_today": 33,
+      "rain_tomorrow": 78,
+      "source": "Open-Meteo"
+    }
+  },
+  "21.0,75.57": {
+    "location": "Jalgaon",
+    "latitude": 21.00292,
+    "longitude": 75.56602,
+    "fetched_at": 1786153262.521308,
+    "weather_data": {
+      "place": "Jalgaon",
+      "admin": null,
+      "temp_now": 25,
+      "humidity": 81,
+      "code": 1,
+      "today_max": 31,
+      "today_min": 25,
+      "rain_today": 69,
+      "rain_tomorrow": 67,
+      "source": "Open-Meteo"
+    }
+  },
+  "26.92,75.79": {
+    "location": "Jaipur",
+    "latitude": 26.91962,
+    "longitude": 75.78781,
+    "fetched_at": 1786153263.1011596,
+    "weather_data": {
+      "place": "Jaipur",
+      "admin": null,
+      "temp_now": 25,
+      "humidity": 92,
+      "code": 0,
+      "today_max": 31,
+      "today_min": 25,
+      "rain_today": 79,
+      "rain_tomorrow": 73,
+      "source": "Open-Meteo"
+    }
+  },
+  "21.15,79.08": {
+    "location": "Nagpur",
+    "latitude": 21.14631,
+    "longitude": 79.08491,
+    "fetched_at": 1786153263.706472,
+    "weather_data": {
+      "place": "Nagpur",
+      "admin": null,
+      "temp_now": 25,
+      "humidity": 93,
+      "code": 3,
+      "today_max": 30,
+      "today_min": 24,
+      "rain_today": 98,
+      "rain_tomorrow": 92,
+      "source": "Open-Meteo"
+    }
+  },
+  "29.61,79.94": {
+    "location": "Kheti",
+    "latitude": 29.61251,
+    "longitude": 79.94088,
+    "fetched_at": 1786153264.3375914,
+    "weather_data": {
+      "place": "Kheti",
+      "admin": null,
+      "temp_now": 19,
+      "humidity": 98,
+      "code": 3,
+      "today_max": 27,
+      "today_min": 18,
+      "rain_today": 70,
+      "rain_tomorrow": 97,
+      "source": "Open-Meteo"
+    }
+  },
+  "13.07,123.7": {
+    "location": "Aanislag",
+    "latitude": 13.0748,
+    "longitude": 123.703,
+    "fetched_at": 1786153264.9433823,
+    "weather_data": {
+      "place": "Aanislag",
+      "admin": null,
+      "temp_now": 27,
+      "humidity": 95,
+      "code": 51,
+      "today_max": 28,
+      "today_min": 24,
+      "rain_today": 100,
+      "rain_tomorrow": 100,
+      "source": "Open-Meteo"
+    }
+  },
+  "51.46,0.71": {
+    "location": "Grain",
+    "latitude": 51.45591,
+    "longitude": 0.71126,
+    "fetched_at": 1786153265.5210204,
+    "weather_data": {
+      "place": "Grain",
+      "admin": null,
+      "temp_now": 14,
+      "humidity": 68,
+      "code": 0,
+      "today_max": 26,
+      "today_min": 13,
+      "rain_today": 0,
+      "rain_tomorrow": 2,
+      "source": "Open-Meteo"
+    }
+  }
+}

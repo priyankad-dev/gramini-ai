@@ -1,0 +1,643 @@
+{
+  "data_status": "partial",
+  "_WARNING": "data_status is 'partial': researched and corrected on 6 Aug 2026, but not every scheme has been read off its own portal yet. 5 of 8 are PORTAL-verified (PM-KISAN, NSAP, Soil Health Card, PMAY-G eligibility, MGNREGA links); the rest rest on government press releases. See data/VERIFICATION.md for the per-fact record and the short browser checklist that remains. Set each verified_on and change this to 'verified' once that is done. Values: 'sample' (unchecked), 'partial' (researched, some portals pending), 'verified' (a human read every line off the portal).",
+  "schemes": [
+    {
+      "id": "pm-kisan",
+      "icon": "🌾",
+      "category": "farming",
+      "keywords": {
+        "hi": [
+          "पीएम किसान",
+          "किसान सम्मान",
+          "सम्मान निधि",
+          "किसान को पैसा",
+          "छह हजार",
+          "किसान योजना",
+          "किसान"
+        ],
+        "en": [
+          "pm kisan",
+          "kisan samman",
+          "farmer income support",
+          "6000 farmer",
+          "farmer"
+        ],
+        "mr": [
+          "पीएम किसान",
+          "शेतकरी सन्मान",
+          "शेतकरी पैसे",
+          "शेतकरी"
+        ]
+      },
+      "name": {
+        "hi": "पीएम-किसान सम्मान निधि",
+        "en": "PM-KISAN Samman Nidhi",
+        "mr": "पीएम-किसान सन्मान निधी"
+      },
+      "what_you_get": {
+        "hi": "हर साल 6,000 रुपये, तीन बराबर किस्तों में सीधे आपके बैंक खाते में।",
+        "en": "Rs 6,000 every year, paid in three equal instalments directly into your bank account.",
+        "mr": "दरवर्षी 6,000 रुपये, तीन समान हप्त्यांत थेट तुमच्या बँक खात्यात."
+      },
+      "who_can_apply": {
+        "hi": "ज़मीन रखने वाले किसान परिवार। कुछ श्रेणियाँ इसमें शामिल नहीं हैं, जैसे आयकर देने वाले और सरकारी कर्मचारी।",
+        "en": "Land-holding farmer families. Some categories are excluded, such as income-tax payers and government employees.",
+        "mr": "जमीन असलेली शेतकरी कुटुंबे. काही गट वगळले आहेत, उदा. आयकर भरणारे आणि सरकारी कर्मचारी."
+      },
+      "papers_needed": {
+        "hi": [
+          "आधार कार्ड",
+          "बैंक पासबुक",
+          "ज़मीन के कागज़"
+        ],
+        "en": [
+          "Aadhaar card",
+          "Bank passbook",
+          "Land records"
+        ],
+        "mr": [
+          "आधार कार्ड",
+          "बँक पासबुक",
+          "जमिनीची कागदपत्रे"
+        ]
+      },
+      "how_to_apply": {
+        "hi": "अपने गाँव के CSC केंद्र पर जाएँ, या पटवारी से मिलें, या pmkisan.gov.in पर खुद रजिस्टर करें।",
+        "en": "Go to your village CSC centre, or meet the patwari, or register yourself at pmkisan.gov.in.",
+        "mr": "गावातील CSC केंद्रात जा, किंवा तलाठ्यांना भेटा, किंवा pmkisan.gov.in वर नोंदणी करा."
+      },
+      "official_link": "https://pmkisan.gov.in/",
+      "helpline": "155261",
+      "verified_on": null
+    },
+    {
+      "id": "pmfby",
+      "icon": "🌧️",
+      "category": "farming",
+      "keywords": {
+        "hi": [
+          "फसल बीमा",
+          "फ़सल बीमा",
+          "बीमा",
+          "फसल खराब",
+          "सूखा",
+          "ओला"
+        ],
+        "en": [
+          "crop insurance",
+          "fasal bima",
+          "pmfby",
+          "crop loss",
+          "insurance"
+        ],
+        "mr": [
+          "पीक विमा",
+          "पिक विमा",
+          "पीक नुकसान",
+          "विमा"
+        ]
+      },
+      "name": {
+        "hi": "प्रधानमंत्री फसल बीमा योजना",
+        "en": "Pradhan Mantri Fasal Bima Yojana",
+        "mr": "प्रधानमंत्री पीक विमा योजना"
+      },
+      "what_you_get": {
+        "hi": "अगर सूखा, बाढ़, ओलावृष्टि या कीड़े से फसल खराब हो जाए, तो बीमा कंपनी नुकसान का पैसा देती है। किसान को थोड़ा प्रीमियम भरना होता है — ख़रीफ़ में 2 प्रतिशत, रबी में डेढ़ प्रतिशत, और बाग़वानी व व्यापारिक फसलों में 5 प्रतिशत। बाकी सरकार भरती है।",
+        "en": "If your crop is damaged by drought, flood, hailstorm or pests, the insurance company pays for the loss. The farmer pays a small premium — 2 per cent for kharif, 1.5 per cent for rabi, and 5 per cent for horticultural and commercial crops. The government pays the rest.",
+        "mr": "दुष्काळ, पूर, गारपीट किंवा किडीमुळे पीक खराब झाल्यास विमा कंपनी नुकसानभरपाई देते. शेतकऱ्याला थोडा हप्ता भरावा लागतो — खरिपात 2 टक्के, रब्बीत दीड टक्के, आणि फळबाग व व्यापारी पिकांत 5 टक्के. उरलेला सरकार भरते."
+      },
+      "who_can_apply": {
+        "hi": "अधिसूचित फसल उगाने वाले किसान, चाहे अपनी ज़मीन हो या बटाई पर ली हो।",
+        "en": "Farmers growing a notified crop, whether on their own land or land taken on lease.",
+        "mr": "अधिसूचित पीक घेणारे शेतकरी, स्वतःची जमीन असो वा भाडेतत्त्वावरील."
+      },
+      "papers_needed": {
+        "hi": [
+          "आधार कार्ड",
+          "बैंक पासबुक",
+          "ज़मीन के कागज़ या बटाई का प्रमाण",
+          "बुवाई का प्रमाणपत्र"
+        ],
+        "en": [
+          "Aadhaar card",
+          "Bank passbook",
+          "Land records or tenancy proof",
+          "Sowing certificate"
+        ],
+        "mr": [
+          "आधार कार्ड",
+          "बँक पासबुक",
+          "जमिनीची कागदपत्रे किंवा भाडेकरार",
+          "पेरणी दाखला"
+        ]
+      },
+      "how_to_apply": {
+        "hi": "बैंक, CSC केंद्र, या pmfby.gov.in पर आवेदन करें। हर फसल के लिए आख़िरी तारीख़ अलग होती है — पहले तारीख़ पता करें।",
+        "en": "Apply at a bank, a CSC centre, or on pmfby.gov.in. Each crop has its own last date — check the date first.",
+        "mr": "बँक, CSC केंद्र किंवा pmfby.gov.in वर अर्ज करा. प्रत्येक पिकाची अंतिम तारीख वेगळी असते — आधी तारीख तपासा."
+      },
+      "official_link": "https://pmfby.gov.in/",
+      "helpline": "14447",
+      "verified_on": null
+    },
+    {
+      "id": "ayushman-bharat",
+      "icon": "🏥",
+      "category": "health",
+      "keywords": {
+        "hi": [
+          "आयुष्मान",
+          "इलाज",
+          "अस्पताल",
+          "मुफ्त इलाज",
+          "पांच लाख",
+          "हेल्थ कार्ड",
+          "वय वंदना"
+        ],
+        "en": [
+          "ayushman",
+          "pmjay",
+          "free treatment",
+          "hospital",
+          "health card",
+          "vay vandana"
+        ],
+        "mr": [
+          "आयुष्मान",
+          "मोफत उपचार",
+          "रुग्णालय",
+          "उपचार",
+          "वय वंदना"
+        ]
+      },
+      "name": {
+        "hi": "आयुष्मान भारत (पीएम-जय)",
+        "en": "Ayushman Bharat (PM-JAY)",
+        "mr": "आयुष्मान भारत (पीएम-जय)"
+      },
+      "what_you_get": {
+        "hi": "हर परिवार को हर साल 5 लाख रुपये तक का मुफ़्त अस्पताल इलाज, सूची में शामिल सरकारी और निजी अस्पतालों में।",
+        "en": "Free hospital treatment up to Rs 5 lakh per family per year, at listed government and private hospitals.",
+        "mr": "प्रत्येक कुटुंबाला दरवर्षी 5 लाख रुपयांपर्यंत मोफत रुग्णालय उपचार, यादीतील सरकारी व खाजगी रुग्णालयांत."
+      },
+      "who_can_apply": {
+        "hi": "70 साल या उससे ज़्यादा उम्र के हर बुज़ुर्ग को यह मिलता है, आमदनी चाहे कुछ भी हो। बाकी परिवारों की पात्रता SECC सूची से तय होती है। अपना नाम pmjay.gov.in पर या CSC केंद्र पर जाँचें।",
+        "en": "Every person aged 70 or above is covered, whatever their income. For other families, eligibility comes from the SECC list. Check your name at pmjay.gov.in or a CSC centre.",
+        "mr": "70 वर्षे किंवा त्याहून अधिक वयाच्या प्रत्येक ज्येष्ठ नागरिकाला हे मिळते, उत्पन्न कितीही असो. इतर कुटुंबांची पात्रता SECC यादीवरून ठरते. तुमचे नाव pmjay.gov.in वर किंवा CSC केंद्रात तपासा."
+      },
+      "papers_needed": {
+        "hi": [
+          "आधार कार्ड",
+          "राशन कार्ड",
+          "मोबाइल नंबर"
+        ],
+        "en": [
+          "Aadhaar card",
+          "Ration card",
+          "Mobile number"
+        ],
+        "mr": [
+          "आधार कार्ड",
+          "शिधापत्रिका",
+          "मोबाइल नंबर"
+        ]
+      },
+      "how_to_apply": {
+        "hi": "किसी भी सूचीबद्ध अस्पताल के आयुष्मान काउंटर पर या CSC केंद्र पर जाकर मुफ़्त कार्ड बनवाएँ।",
+        "en": "Get the card made free at the Ayushman counter in any listed hospital, or at a CSC centre.",
+        "mr": "कोणत्याही यादीतील रुग्णालयाच्या आयुष्मान काउंटरवर किंवा CSC केंद्रात मोफत कार्ड काढा."
+      },
+      "official_link": "https://pmjay.gov.in/",
+      "helpline": "14555",
+      "verified_on": null
+    },
+    {
+      "id": "kcc",
+      "icon": "💳",
+      "category": "farming",
+      "keywords": {
+        "hi": [
+          "किसान क्रेडिट",
+          "केसीसी",
+          "लोन",
+          "कर्ज",
+          "ब्याज",
+          "उधार"
+        ],
+        "en": [
+          "kisan credit card",
+          "kcc",
+          "farm loan",
+          "crop loan",
+          "loan"
+        ],
+        "mr": [
+          "किसान क्रेडिट कार्ड",
+          "कर्ज",
+          "पीक कर्ज"
+        ]
+      },
+      "name": {
+        "hi": "किसान क्रेडिट कार्ड (KCC)",
+        "en": "Kisan Credit Card (KCC)",
+        "mr": "किसान क्रेडिट कार्ड (KCC)"
+      },
+      "what_you_get": {
+        "hi": "खेती के खर्च के लिए कम ब्याज पर कर्ज़। समय पर लौटाने पर ब्याज में छूट मिलती है।",
+        "en": "A low-interest loan for farming costs. If you repay on time, you get an interest discount.",
+        "mr": "शेतीच्या खर्चासाठी कमी व्याजदराचे कर्ज. वेळेत परतफेड केल्यास व्याजात सवलत मिळते."
+      },
+      "who_can_apply": {
+        "hi": "खेती करने वाले किसान, बटाईदार, और पशुपालन या मछली पालन करने वाले भी।",
+        "en": "Farmers who cultivate land, tenant farmers, and also those in animal husbandry or fisheries.",
+        "mr": "शेती करणारे शेतकरी, भाडेकरू शेतकरी, तसेच पशुपालन किंवा मत्स्यपालन करणारे."
+      },
+      "papers_needed": {
+        "hi": [
+          "आधार कार्ड",
+          "ज़मीन के कागज़",
+          "पासपोर्ट साइज़ फोटो",
+          "बैंक खाता"
+        ],
+        "en": [
+          "Aadhaar card",
+          "Land records",
+          "Passport-size photo",
+          "Bank account"
+        ],
+        "mr": [
+          "आधार कार्ड",
+          "जमिनीची कागदपत्रे",
+          "पासपोर्ट फोटो",
+          "बँक खाते"
+        ]
+      },
+      "how_to_apply": {
+        "hi": "अपने नज़दीकी बैंक शाखा में जाएँ और KCC का फ़ॉर्म माँगें। सहकारी बैंक भी देते हैं।",
+        "en": "Go to your nearest bank branch and ask for the KCC form. Cooperative banks also provide it.",
+        "mr": "जवळच्या बँक शाखेत जा आणि KCC फॉर्म मागा. सहकारी बँकाही देतात."
+      },
+      "official_link": "https://www.myscheme.gov.in/schemes/kcc",
+      "helpline": "1800-180-1551",
+      "verified_on": null
+    },
+    {
+      "id": "pmay-g",
+      "icon": "🏠",
+      "category": "housing",
+      "keywords": {
+        "hi": [
+          "आवास",
+          "घर",
+          "मकान",
+          "पक्का घर",
+          "आवास योजना"
+        ],
+        "en": [
+          "awas",
+          "housing",
+          "pucca house",
+          "pmay",
+          "house"
+        ],
+        "mr": [
+          "घरकुल",
+          "आवास",
+          "पक्के घर",
+          "घर"
+        ]
+      },
+      "name": {
+        "hi": "प्रधानमंत्री आवास योजना (ग्रामीण)",
+        "en": "Pradhan Mantri Awas Yojana (Gramin)",
+        "mr": "प्रधानमंत्री आवास योजना (ग्रामीण)"
+      },
+      "what_you_get": {
+        "hi": "पक्का घर बनाने के लिए मैदानी इलाक़ों में 1 लाख 20 हज़ार रुपये, और पहाड़ी व कठिन इलाक़ों में 1 लाख 30 हज़ार रुपये, किस्तों में। साथ में शौचालय के लिए 12 हज़ार रुपये और मनरेगा से 90 से 95 दिन की मज़दूरी भी मिलती है।",
+        "en": "Rs 1.20 lakh to build a pucca house in plain areas, and Rs 1.30 lakh in hilly and difficult areas, paid in instalments. Rs 12,000 for a toilet and 90 to 95 days of MGNREGA wages are added on top.",
+        "mr": "पक्के घर बांधण्यासाठी सपाट भागात 1 लाख 20 हजार रुपये, आणि डोंगराळ व कठीण भागात 1 लाख 30 हजार रुपये, हप्त्यांत. सोबत शौचालयासाठी 12 हजार रुपये आणि मनरेगातून 90 ते 95 दिवसांची मजुरीही मिळते."
+      },
+      "who_can_apply": {
+        "hi": "गाँव के वे परिवार जिनके पास पक्का घर नहीं है। नाम आवास+ 2024 सर्वे में या SECC प्रतीक्षा सूची में होना चाहिए। अपनी स्थिति ग्राम पंचायत से पूछें।",
+        "en": "Village families who do not own a pucca house. The name must be in the Awaas+ 2024 survey or on the SECC waiting list. Ask the gram panchayat about your status.",
+        "mr": "पक्के घर नसलेली ग्रामीण कुटुंबे. नाव आवास+ 2024 सर्वेक्षणात किंवा SECC प्रतीक्षा यादीत असावे. तुमची स्थिती ग्रामपंचायतीला विचारा."
+      },
+      "papers_needed": {
+        "hi": [
+          "आधार कार्ड",
+          "बैंक पासबुक",
+          "मनरेगा जॉब कार्ड",
+          "स्वच्छ भारत मिशन नंबर"
+        ],
+        "en": [
+          "Aadhaar card",
+          "Bank passbook",
+          "MGNREGA job card",
+          "Swachh Bharat Mission number"
+        ],
+        "mr": [
+          "आधार कार्ड",
+          "बँक पासबुक",
+          "मनरेगा जॉब कार्ड",
+          "स्वच्छ भारत मिशन क्रमांक"
+        ]
+      },
+      "how_to_apply": {
+        "hi": "ग्राम पंचायत में सचिव या ग्राम सेवक से मिलें। सूची ग्राम सभा में पढ़ी जाती है।",
+        "en": "Meet the secretary or gram sevak at the gram panchayat. The list is read out in the gram sabha.",
+        "mr": "ग्रामपंचायतीत सचिव किंवा ग्रामसेवकाला भेटा. यादी ग्रामसभेत वाचली जाते."
+      },
+      "official_link": "https://pmayg.dord.gov.in/",
+      "_helpline_note": "1800-11-6446 was here but could not be confirmed on any government source. Ring it; if it answers as PMAY-G, restore it. The gram panchayat route in how_to_apply is the officially documented one.",
+      "helpline": null,
+      "verified_on": null
+    },
+    {
+      "id": "soil-health-card",
+      "icon": "🧪",
+      "category": "farming",
+      "keywords": {
+        "hi": [
+          "मिट्टी",
+          "मृदा",
+          "सॉइल",
+          "खाद कितनी",
+          "मिट्टी जाँच"
+        ],
+        "en": [
+          "soil health card",
+          "soil test",
+          "fertiliser advice",
+          "soil"
+        ],
+        "mr": [
+          "माती परीक्षण",
+          "मृदा आरोग्य",
+          "खत सल्ला",
+          "माती"
+        ]
+      },
+      "name": {
+        "hi": "मृदा स्वास्थ्य कार्ड",
+        "en": "Soil Health Card",
+        "mr": "मृदा आरोग्य पत्रिका"
+      },
+      "what_you_get": {
+        "hi": "आपके खेत की मिट्टी की मुफ़्त जाँच — 12 बातों पर — और एक कार्ड, जिसमें लिखा होता है कि कौन-सी फ़सल इस मिट्टी में अच्छी रहेगी और कौन-सी खाद कितनी डालनी है। इससे खाद का खर्च घटता है। किसान से कोई पैसा नहीं लिया जाता।",
+        "en": "A free test of your field's soil on 12 measures, and a card telling you which crop suits this soil and which fertiliser to use and how much. This lowers your fertiliser cost. The farmer pays nothing.",
+        "mr": "तुमच्या शेतातील मातीची मोफत तपासणी — 12 बाबींवर — आणि कोणते पीक या मातीत चांगले येईल व कोणते खत किती द्यायचे हे सांगणारे कार्ड. यामुळे खताचा खर्च कमी होतो. शेतकऱ्याकडून पैसे घेतले जात नाहीत."
+      },
+      "who_can_apply": {
+        "hi": "कोई भी किसान, ज़मीन छोटी हो या बड़ी।",
+        "en": "Any farmer, whether the land is small or large.",
+        "mr": "कोणताही शेतकरी, जमीन लहान असो वा मोठी."
+      },
+      "papers_needed": {
+        "hi": [
+          "आधार कार्ड",
+          "ज़मीन के कागज़"
+        ],
+        "en": [
+          "Aadhaar card",
+          "Land records"
+        ],
+        "mr": [
+          "आधार कार्ड",
+          "जमिनीची कागदपत्रे"
+        ]
+      },
+      "how_to_apply": {
+        "hi": "कृषि विभाग के ज़िला या राज्य नोडल अधिकारी से कहें, या soilhealth.dac.gov.in पर अर्ज़ी दें। फिर एक कर्मचारी आपके खेत आकर मिट्टी का नमूना लेता है, या आप खुद नमूना जाँच प्रयोगशाला में दे सकते हैं।",
+        "en": "Ask the agriculture department's district or state nodal officer, or apply on soilhealth.dac.gov.in. A worker then comes to your field to take a soil sample, or you can take a sample to the testing laboratory yourself.",
+        "mr": "कृषी विभागाच्या जिल्हा किंवा राज्य नोडल अधिकाऱ्याला सांगा, किंवा soilhealth.dac.gov.in वर अर्ज करा. मग एक कर्मचारी तुमच्या शेतात येऊन मातीचा नमुना घेतो, किंवा तुम्ही स्वतः नमुना प्रयोगशाळेत देऊ शकता."
+      },
+      "official_link": "https://soilhealth.dac.gov.in/",
+      "helpline": "1800-180-1551",
+      "verified_on": null
+    },
+    {
+      "id": "mgnrega",
+      "icon": "⛏️",
+      "category": "work",
+      "keywords": {
+        "hi": [
+          "मनरेगा",
+          "जॉब कार्ड",
+          "मजदूरी",
+          "काम",
+          "रोजगार",
+          "सौ दिन"
+        ],
+        "en": [
+          "mgnrega",
+          "nrega",
+          "job card",
+          "wage",
+          "100 days work",
+          "work"
+        ],
+        "mr": [
+          "मनरेगा",
+          "रोजगार हमी",
+          "जॉब कार्ड",
+          "मजुरी"
+        ]
+      },
+      "name": {
+        "hi": "मनरेगा (रोज़गार गारंटी)",
+        "en": "MGNREGA (Employment Guarantee)",
+        "mr": "मनरेगा (रोजगार हमी योजना)"
+      },
+      "what_you_get": {
+        "hi": "हर ग्रामीण परिवार को एक साल में कम से कम 100 दिन का मज़दूरी वाला काम, गाँव के पास ही। मज़दूरी सीधे बैंक खाते में आती है।",
+        "en": "At least 100 days of paid work in a year for every rural household, close to the village. Wages go straight to the bank account.",
+        "mr": "प्रत्येक ग्रामीण कुटुंबाला वर्षात किमान 100 दिवसांचे मजुरीचे काम, गावाजवळच. मजुरी थेट बँक खात्यात जमा होते."
+      },
+      "who_can_apply": {
+        "hi": "गाँव का कोई भी वयस्क सदस्य जो शारीरिक मज़दूरी करने को तैयार हो।",
+        "en": "Any adult member of a rural household willing to do manual work.",
+        "mr": "शारीरिक काम करण्यास तयार असलेला कोणताही प्रौढ ग्रामीण सदस्य."
+      },
+      "papers_needed": {
+        "hi": [
+          "आधार कार्ड",
+          "पासपोर्ट साइज़ फोटो",
+          "बैंक पासबुक",
+          "निवास का प्रमाण"
+        ],
+        "en": [
+          "Aadhaar card",
+          "Passport-size photo",
+          "Bank passbook",
+          "Proof of residence"
+        ],
+        "mr": [
+          "आधार कार्ड",
+          "पासपोर्ट फोटो",
+          "बँक पासबुक",
+          "रहिवासी दाखला"
+        ]
+      },
+      "how_to_apply": {
+        "hi": "ग्राम पंचायत में जॉब कार्ड के लिए लिखित अर्ज़ी दें। काम माँगने के 15 दिन में काम न मिले तो बेरोज़गारी भत्ता माँगने का हक़ है।",
+        "en": "Give a written application for a job card at the gram panchayat. If work is not given within 15 days of asking, you have the right to claim unemployment allowance.",
+        "mr": "ग्रामपंचायतीत जॉब कार्डसाठी लेखी अर्ज द्या. काम मागितल्यापासून 15 दिवसांत काम न मिळाल्यास बेरोजगारी भत्ता मागण्याचा हक्क आहे."
+      },
+      "official_link": "https://nrega.dord.gov.in/",
+      "helpline": "1800-110-707",
+      "verified_on": null
+    },
+    {
+      "id": "nsap-pension",
+      "icon": "👵",
+      "category": "pension",
+      "keywords": {
+        "hi": [
+          "पेंशन",
+          "बुढ़ापा",
+          "वृद्धावस्था",
+          "विधवा पेंशन",
+          "बुजुर्ग"
+        ],
+        "en": [
+          "pension",
+          "old age",
+          "widow pension",
+          "nsap"
+        ],
+        "mr": [
+          "निवृत्तीवेतन",
+          "वृद्धापकाळ",
+          "विधवा निवृत्तीवेतन",
+          "पेन्शन"
+        ]
+      },
+      "name": {
+        "hi": "राष्ट्रीय सामाजिक सहायता (वृद्धावस्था व विधवा पेंशन)",
+        "en": "National Social Assistance (Old Age & Widow Pension)",
+        "mr": "राष्ट्रीय सामाजिक सहाय्य (वृद्धापकाळ व विधवा निवृत्तीवेतन)"
+      },
+      "what_you_get": {
+        "hi": "हर महीने पेंशन का पैसा सीधे बैंक खाते में। रकम केंद्र और राज्य दोनों की मदद मिलाकर बनती है, इसलिए हर राज्य में अलग होती है।",
+        "en": "A monthly pension paid straight into the bank account. The amount is made up of central plus state support, so it differs from state to state.",
+        "mr": "दरमहा निवृत्तीवेतन थेट बँक खात्यात. रक्कम केंद्र व राज्य दोन्हींच्या मदतीने ठरते, त्यामुळे प्रत्येक राज्यात वेगळी असते."
+      },
+      "who_can_apply": {
+        "hi": "गरीबी रेखा से नीचे के परिवार के लोग — 60 साल या उससे ऊपर के बुज़ुर्ग, 40 से 59 साल की विधवा महिलाएँ, और 18 से 59 साल के गंभीर या बहु-दिव्यांग व्यक्ति। 60 साल की होने पर विधवा महिला को वृद्धावस्था पेंशन मिलने लगती है।",
+        "en": "People from below-poverty-line families — elderly aged 60 or above, widows aged 40 to 59, and persons aged 18 to 59 with severe or multiple disabilities. On turning 60, a widow moves to the old age pension.",
+        "mr": "दारिद्र्यरेषेखालील कुटुंबातील लोक — 60 वर्षे किंवा त्याहून अधिक वयाचे वृद्ध, 40 ते 59 वयोगटातील विधवा महिला, आणि 18 ते 59 वयोगटातील गंभीर किंवा बहु-दिव्यांग व्यक्ती. 60 वर्षांच्या झाल्यावर विधवा महिलेला वृद्धापकाळ निवृत्तीवेतन मिळू लागते."
+      },
+      "papers_needed": {
+        "hi": [
+          "आधार कार्ड",
+          "उम्र का प्रमाण",
+          "बीपीएल राशन कार्ड",
+          "बैंक पासबुक"
+        ],
+        "en": [
+          "Aadhaar card",
+          "Age proof",
+          "BPL ration card",
+          "Bank passbook"
+        ],
+        "mr": [
+          "आधार कार्ड",
+          "वयाचा दाखला",
+          "बीपीएल शिधापत्रिका",
+          "बँक पासबुक"
+        ]
+      },
+      "how_to_apply": {
+        "hi": "ग्राम पंचायत या तहसील कार्यालय में आवेदन दें। कई राज्यों में CSC केंद्र से भी हो जाता है।",
+        "en": "Apply at the gram panchayat or the tehsil office. In many states a CSC centre can also do it.",
+        "mr": "ग्रामपंचायत किंवा तहसील कार्यालयात अर्ज करा. अनेक राज्यांत CSC केंद्रातूनही होते."
+      },
+      "official_link": "https://nsap.dord.gov.in/",
+      "helpline": "1800-111-555",
+      "verified_on": null
+    },
+    {
+      "id": "nfsa-ration",
+      "icon": "🌾",
+      "category": "food",
+      "keywords": {
+        "hi": [
+          "राशन",
+          "राशन कार्ड",
+          "सस्ता अनाज",
+          "अनाज",
+          "गेहूं",
+          "चावल",
+          "खाद्य सुरक्षा",
+          "अंत्योदय",
+          "पीडीएस",
+          "उचित दर दुकान"
+        ],
+        "en": [
+          "ration",
+          "ration card",
+          "nfsa",
+          "food security",
+          "subsidised grain",
+          "pds",
+          "antyodaya",
+          "fair price shop",
+          "wheat rice"
+        ],
+        "mr": [
+          "रेशन",
+          "रेशन कार्ड",
+          "स्वस्त धान्य",
+          "धान्य",
+          "अन्न सुरक्षा",
+          "अंत्योदय"
+        ]
+      },
+      "name": {
+        "hi": "राशन कार्ड (राष्ट्रीय खाद्य सुरक्षा कानून)",
+        "en": "Ration Card (National Food Security Act)",
+        "mr": "शिधापत्रिका (राष्ट्रीय अन्न सुरक्षा कायदा)"
+      },
+      "what_you_get": {
+        "hi": "सरकारी राशन दुकान से बहुत कम दाम पर हर महीने अनाज। पात्र परिवार के हर सदस्य को हर महीने 5 किलो अनाज मिलता है, और अंत्योदय परिवारों को हर महीने 35 किलो प्रति परिवार।",
+        "en": "Grain every month from the government ration shop at a very low price. Each member of an eligible household gets 5 kg a month, and Antyodaya households get 35 kg per household a month.",
+        "mr": "सरकारी रेशन दुकानातून दर महिन्याला अत्यंत कमी दरात धान्य. पात्र कुटुंबातील प्रत्येक सदस्याला दरमहा 5 किलो धान्य, आणि अंत्योदय कुटुंबांना दरमहा 35 किलो प्रति कुटुंब."
+      },
+      "who_can_apply": {
+        "hi": "राज्य सरकार की पात्रता सूची में शामिल परिवार। प्राथमिकता वाले परिवार और सबसे गरीब अंत्योदय परिवार। पात्रता हर राज्य में अलग तरीके से तय होती है — अपने राशन दुकान या तहसील से पूछें।",
+        "en": "Households on the state government's eligibility list — priority households, and the poorest Antyodaya households. Eligibility is decided differently in each state, so ask at your ration shop or tehsil office.",
+        "mr": "राज्य सरकारच्या पात्रता यादीतील कुटुंबे — प्राधान्य कुटुंबे आणि सर्वात गरीब अंत्योदय कुटुंबे. पात्रता प्रत्येक राज्यात वेगळ्या पद्धतीने ठरते — तुमच्या रेशन दुकानात किंवा तहसीलमध्ये विचारा."
+      },
+      "papers_needed": {
+        "hi": [
+          "आधार कार्ड",
+          "परिवार के सभी सदस्यों का आधार",
+          "निवास का प्रमाण",
+          "पासपोर्ट साइज़ फोटो"
+        ],
+        "en": [
+          "Aadhaar card",
+          "Aadhaar of every family member",
+          "Proof of residence",
+          "Passport-size photo"
+        ],
+        "mr": [
+          "आधार कार्ड",
+          "कुटुंबातील सर्व सदस्यांचे आधार",
+          "रहिवासी दाखला",
+          "पासपोर्ट फोटो"
+        ]
+      },
+      "how_to_apply": {
+        "hi": "अपने राज्य के खाद्य विभाग की वेबसाइट पर या नज़दीकी CSC केंद्र, तहसील या राशन दुकान पर आवेदन कीजिए।",
+        "en": "Apply on your state food department's website, or at the nearest CSC centre, tehsil office or ration shop.",
+        "mr": "तुमच्या राज्याच्या अन्न विभागाच्या संकेतस्थळावर, किंवा जवळच्या CSC केंद्र, तहसील कार्यालय किंवा रेशन दुकानात अर्ज करा."
+      },
+      "official_link": "https://nfsa.gov.in/",
+      "helpline": "1967",
+      "verified_on": null
+    }
+  ]
+}
