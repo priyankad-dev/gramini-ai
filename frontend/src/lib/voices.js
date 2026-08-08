@@ -193,14 +193,78 @@ export function currentVoices() {
   return cachedVoices
 }
 
+// ------------------------------------------------------------- voice quality
+
+/**
+ * How good a voice actually SOUNDS, 0-100.
+ *
+ * Every voice that reaches this function can already read the script. That is
+ * not the same as sounding acceptable, and the gap is why the same deployed URL
+ * sounds fine on one laptop and robotic on the next: `getVoices()` is a property
+ * of the DEVICE - its OS, its browser, its installed language packs - and the
+ * server cannot see it, let alone control it.
+ *
+ * The signals below are the ones that are stable across platforms:
+ *
+ *   Neural, server-side          Google's remote voices in Chrome, and
+ *                                Microsoft's "Online (Natural)" voices in Edge.
+ *                                These are what a good demo sounds like.
+ *   Concatenative, on-device     Apple's Enhanced/Premium downloads. Good.
+ *   Formant synthesis            eSpeak and the legacy SAPI5 "Desktop" voices.
+ *                                This is the robotic one. It is intelligible and
+ *                                it is better than silence, but it is not what
+ *                                you want a judge to hear.
+ *
+ * An unknown voice scores exactly GOOD_ENOUGH. Unknown must not be treated as
+ * bad: guessing wrong there would push a device that sounds perfectly fine onto
+ * the recorded-phrase path, which only covers sentences we recorded in advance.
+ */
+const GOOD_ENOUGH = 50
+
+export function voiceQuality(voice) {
+  if (!voice) return 0
+  const name = String(voice.name || '').toLowerCase()
+
+  // Formant synthesis. Checked FIRST, because an eSpeak voice can also be
+  // remote on some Linux setups and would otherwise score as neural.
+  if (name.includes('espeak')) return 10
+  // Apple's small on-device voices, and the legacy Windows SAPI5 set
+  // ("Microsoft Hemant Desktop - Hindi (India)").
+  if (name.includes('compact')) return 25
+  if (name.includes('desktop')) return 30
+
+  // Microsoft/Edge neural: "Microsoft Swara Online (Natural) - Hindi (India)".
+  if (name.includes('natural') || name.includes('online')) return 95
+  // Chrome's remote neural set: "Google हिन्दी".
+  if (name.startsWith('google')) return 90
+  // Any other server-side voice is neural by construction - nobody streams a
+  // formant synth over the network.
+  if (voice.localService === false) return 85
+  // Apple's downloadable high-quality voices.
+  if (name.includes('premium') || name.includes('enhanced')) return 80
+
+  return GOOD_ENOUGH
+}
+
+/** The best-sounding voice in a list, or undefined if the list is empty. */
+function bestOf(list) {
+  if (!list.length) return undefined
+  return list.reduce((best, v) => (voiceQuality(v) > voiceQuality(best) ? v : best))
+}
+
 // ------------------------------------------------------------- voice matching
 
 /**
  * Choose the best voice for a language, with a documented fallback chain.
  *
- * Returns { voice, reason, exact }. `voice` may be null, which means "let the
- * browser decide" - the caller should still set `utterance.lang`, and should
- * tell the user that the answer may not sound right.
+ * Returns { voice, reason, exact, quality, poor }. `voice` may be null, which
+ * means "let the browser decide" - the caller should still set `utterance.lang`,
+ * and should tell the user that the answer may not sound right.
+ *
+ * Each step below can match SEVERAL voices, and which one came first in
+ * `getVoices()` is arbitrary - it differs between machines and between browser
+ * versions. So every step now picks the best-SOUNDING match rather than the
+ * first one; the chain itself, and which step wins, is unchanged.
  *
  * The chain, in order:
  *   1. exact tag             ta-IN  -> ta-IN
@@ -215,8 +279,19 @@ export function pickVoice(bcp47, voices = currentVoices(), { offline = false } =
   const base = baseOf(bcp47)
   const meta = LANGUAGES[base]
 
+  /*
+    `poor` is the caller's cue that this voice can read the text but will sound
+    rough. It is deliberately NOT set when there is no voice at all: that case
+    already has its own path, and conflating the two would send a device that
+    genuinely cannot speak down the "play a nicer recording" branch.
+  */
+  const result = (voice, reason, exact) => {
+    const quality = voiceQuality(voice)
+    return { voice, reason, exact, quality, poor: Boolean(voice) && quality < GOOD_ENOUGH }
+  }
+
   if (!voices.length) {
-    return { voice: null, reason: 'no-voices-loaded', exact: false }
+    return result(null, 'no-voices-loaded', false)
   }
 
   /*
@@ -235,27 +310,27 @@ export function pickVoice(bcp47, voices = currentVoices(), { offline = false } =
   if (offline) {
     const local = voices.filter((v) => v.localService)
     if (!local.length) {
-      return { voice: null, reason: 'offline-no-local-voice', exact: false }
+      return result(null, 'offline-no-local-voice', false)
     }
     voices = local
   }
 
   // 1. Exact tag.
-  const exact = voices.find((v) => normaliseTag(v.lang) === wanted)
-  if (exact) return { voice: exact, reason: 'exact', exact: true }
+  const exact = bestOf(voices.filter((v) => normaliseTag(v.lang) === wanted))
+  if (exact) return result(exact, 'exact', true)
 
   // 2. Same language, any region.
-  const sameLang = voices.find((v) => baseOf(v.lang) === base)
-  if (sameLang) return { voice: sameLang, reason: 'same-language', exact: true }
+  const sameLang = bestOf(voices.filter((v) => baseOf(v.lang) === base))
+  if (sameLang) return result(sameLang, 'same-language', true)
 
   // 3. The name gives it away even when the tag does not.
   if (meta) {
     const needles = [meta.english.toLowerCase(), meta.native.toLowerCase()]
-    const byName = voices.find((v) => {
+    const byName = bestOf(voices.filter((v) => {
       const name = String(v.name || '').toLowerCase()
       return needles.some((n) => n && name.includes(n))
-    })
-    if (byName) return { voice: byName, reason: 'name-match', exact: true }
+    }))
+    if (byName) return result(byName, 'name-match', true)
   }
 
   /*
@@ -266,11 +341,11 @@ export function pickVoice(bcp47, voices = currentVoices(), { offline = false } =
   */
   const wantedScript = LANG_SCRIPT[base]
   if (wantedScript) {
-    const sameScript = voices.find(
-      (v) => LANG_SCRIPT[baseOf(v.lang)] === wantedScript,
+    const sameScript = bestOf(
+      voices.filter((v) => LANG_SCRIPT[baseOf(v.lang)] === wantedScript),
     )
     if (sameScript) {
-      return { voice: sameScript, reason: 'same-script', exact: false }
+      return result(sameScript, 'same-script', false)
     }
   }
 
@@ -286,16 +361,16 @@ export function pickVoice(bcp47, voices = currentVoices(), { offline = false } =
        or a URL - which any voice can say.
   */
   if (wantedScript && wantedScript !== 'latin') {
-    return { voice: null, reason: 'no-voice-for-script', exact: false }
+    return result(null, 'no-voice-for-script', false)
   }
 
   // 6. Latin text: any English voice will do.
-  const enIn = voices.find((v) => normaliseTag(v.lang) === 'en-in')
-  if (enIn) return { voice: enIn, reason: 'english-india', exact: false }
-  const anyEnglish = voices.find((v) => baseOf(v.lang) === 'en')
-  if (anyEnglish) return { voice: anyEnglish, reason: 'english-any', exact: false }
+  const enIn = bestOf(voices.filter((v) => normaliseTag(v.lang) === 'en-in'))
+  if (enIn) return result(enIn, 'english-india', false)
+  const anyEnglish = bestOf(voices.filter((v) => baseOf(v.lang) === 'en'))
+  if (anyEnglish) return result(anyEnglish, 'english-any', false)
 
-  return { voice: voices[0] || null, reason: 'browser-default', exact: false }
+  return result(bestOf(voices) || null, 'browser-default', false)
 }
 
 /** Is there a genuinely correct voice for this language on this device? */
@@ -336,6 +411,7 @@ export function logVoiceChoice(bcp47, picked, voices) {
   console.info(
     `[Gramini TTS] lang=${bcp47} -> voice="${picked.voice?.name || 'default'}" ` +
       `(${picked.voice?.lang || '-'}) match=${picked.reason} ` +
+      `quality=${picked.quality ?? '-'}${picked.poor ? ' (rough)' : ''} ` +
       `voicesLoaded=${voices.length}`,
   )
 }

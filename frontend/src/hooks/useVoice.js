@@ -300,7 +300,8 @@ export function useVoice({ bcp47, onFinalTranscript, online = true }) {
       `[Gramini TTS] internet=${offline ? 'OFFLINE' : 'online'} ` +
         `engine=speechSynthesis lang=${speakLang} ` +
         `browserVoice="${picked.voice?.name || 'none'}" ` +
-        `local=${picked.voice?.localService ?? '-'} match=${picked.reason}`,
+        `local=${picked.voice?.localService ?? '-'} match=${picked.reason} ` +
+        `quality=${picked.quality ?? '-'}${picked.poor ? ' (rough)' : ''}`,
     )
 
     // Remember the whole answer, so a transcript that turns out to be our own
@@ -427,8 +428,14 @@ export function useVoice({ bcp47, onFinalTranscript, online = true }) {
       speakWithBrowser(piece)
     }
 
-    /** LEVEL 1 / 2 - synthesise with whatever voice we settled on. */
-    function speakWithBrowser(piece) {
+    /**
+     * LEVEL 1 / 2 - synthesise with whatever voice we settled on.
+     *
+     * `onDone` exists so the recorded-audio path can borrow this for a single
+     * paragraph without handing control back to the chunk queue. It defaults to
+     * `speakNext`, which is the ordinary flow and is unchanged.
+     */
+    function speakWithBrowser(piece, onDone = speakNext) {
       setVoiceBlocked(false)
       const utterance = new SpeechSynthesisUtterance(piece)
       utterance.lang = speakLang
@@ -443,7 +450,7 @@ export function useVoice({ bcp47, onFinalTranscript, online = true }) {
         cleanup()
         if (queueId !== queueIdRef.current || done) return
         // A short breath between schemes rather than a run-on wall of speech.
-        setTimeout(speakNext, index < chunks.length ? 180 : 0)
+        setTimeout(onDone, index < chunks.length ? 180 : 0)
       }
 
       utterance.onend = advance
@@ -498,7 +505,31 @@ export function useVoice({ bcp47, onFinalTranscript, online = true }) {
       first, and chunking is only for text the browser has to synthesise.
     */
     const browserCanSayIt = picked.voice && voiceCanRead(picked.voice, text)
-    if (!browserCanSayIt) {
+
+    /*
+      Prefer a recording when the browser voice is ROUGH, not only when it is
+      unusable.
+
+      This is the "sounds different on someone else's laptop" bug. `getVoices()`
+      is a property of the device, so one machine gets Google's neural Hindi
+      voice and the next gets a formant synth. Both pass `voiceCanRead` - the
+      script is right - so the second one used to go straight to the browser and
+      the Gemini-recorded WAVs sat unused. Preferring the recording here is the
+      only way this app can sound the same on two different machines.
+
+      Only when the browser could have said it anyway: if it could NOT, this is
+      already the existing L3 path and nothing below changes for it.
+    */
+    const preferRecording = Boolean(browserCanSayIt && picked.poor)
+    if (preferRecording) {
+      console.info(
+        `[Gramini TTS] browser voice "${picked.voice.name}" is rough ` +
+          `(quality=${picked.quality}) - trying the recorded audio first ` +
+          'so every device sounds the same.',
+      )
+    }
+
+    if (!browserCanSayIt || preferRecording) {
       /*
         Play recordings PARAGRAPH BY PARAGRAPH.
 
@@ -508,9 +539,10 @@ export function useVoice({ bcp47, onFinalTranscript, online = true }) {
         never matches anything - so a nine-scheme answer would find no audio at
         all despite every scheme being recorded.
 
-        Whatever is found is played in order. Anything missing is skipped rather
-        than blocking the rest: a partial spoken answer with the full text on
-        screen beats silence.
+        Whatever is found is played in order. A paragraph with no recording is
+        spoken by the browser when the browser can read it, and skipped when it
+        cannot - either way the rest is not blocked, and the full text is on
+        screen throughout.
       */
       const paragraphs = paragraphsOf(text)
       Promise.all(paragraphs.map((para) => findClip(para, speakLang)))
@@ -529,6 +561,27 @@ export function useVoice({ bcp47, onFinalTranscript, online = true }) {
           )
           setVoiceBlocked(false)
 
+          /*
+            Speak ONE paragraph with the browser voice, then carry on with the
+            recordings. Chunked, because a paragraph can exceed the length a
+            single utterance survives.
+          */
+          const speakGap = (paragraph, after) => {
+            const pieces = chunkForSpeech(paragraph)
+            let piece = 0
+            const step = () => {
+              if (queueId !== queueIdRef.current || done) return
+              if (piece >= pieces.length) {
+                after()
+                return
+              }
+              const current = pieces[piece]
+              piece += 1
+              speakWithBrowser(current, step)
+            }
+            step()
+          }
+
           let at = 0
           const playNext = () => {
             if (queueId !== queueIdRef.current || done) return
@@ -537,8 +590,27 @@ export function useVoice({ bcp47, onFinalTranscript, online = true }) {
               return
             }
             const url = urls[at]
+            const paragraph = paragraphs[at]
             at += 1
             if (!url) {
+              /*
+                No recording for this paragraph.
+
+                When we came here for QUALITY the browser can still say it, and
+                dropping it would lose content: a nine-scheme answer opens with
+                "मुझे 9 सरकारी योजनाएँ मिलीं" and closes with an invitation to
+                ask about one of them. Neither can ever be pre-recorded - their
+                wording depends on how many schemes matched - so requiring a
+                complete set would reject an answer whose nine schemes are all
+                recorded. One voice change at each end beats two lost sentences.
+
+                When we came here because NOTHING can read the script, the
+                browser is not an option and skipping remains correct.
+              */
+              if (browserCanSayIt) {
+                speakGap(paragraph, playNext)
+                return
+              }
               playNext() // not recorded - skip, the text is on screen
               return
             }
