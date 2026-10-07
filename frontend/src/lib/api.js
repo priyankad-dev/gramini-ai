@@ -10,6 +10,7 @@ import {
 // is always available. A spinner that never resolves is the worst thing a
 // judge can be shown, because it looks identical to a crash.
 import { apiUrl } from './config'
+import { classifyFailure } from './connection'
 
 const TIMEOUT_MS = 10000
 
@@ -34,10 +35,20 @@ async function post(path, body, timeoutMs = TIMEOUT_MS) {
       body: JSON.stringify(body),
       signal: controller.signal,
     })
-    if (!response.ok) throw new Error(`HTTP ${response.status}`)
+    if (!response.ok) {
+      // The server answered, so the network is fine. Keep the status on the
+      // error so callers never mistake this for "no internet".
+      console.error(`[api] ${path} failed: HTTP ${response.status}`)
+      const error = new Error(`HTTP ${response.status}`)
+      error.status = response.status
+      throw error
+    }
     const data = await response.json()
     announceReachability(true)
     return data
+  } catch (error) {
+    if (!error.status) console.error(`[api] ${path} failed:`, error?.name, error?.message)
+    throw error
   } finally {
     clearTimeout(timer)
   }
@@ -50,18 +61,33 @@ async function post(path, body, timeoutMs = TIMEOUT_MS) {
  * scheme pack cached on the device. PS07 asks for the app to work on poor
  * connectivity, so being offline is a normal state here, not a failure state.
  */
-export async function sendTurn(text, lang) {
+export async function sendTurn(text, lang, coords = null) {
   try {
-    const data = await post('/api/turn', { text, lang })
+    // `coords` only after the server asked for them (REQUEST_LOCATION).
+    const data = await post('/api/turn', { text, lang, ...(coords || {}) })
     // Keep the confirmation sentence so the same switch works offline later.
     if (data?.action === 'CHANGE_UI_LANGUAGE' && data.speech) {
       rememberLangConfirm(data.lang, data.speech)
     }
     return data
-  } catch {
+  } catch (error) {
     announceReachability(false)
-    return { ...localTurn(text, lang), offline: true }
+    return localFallback(text, lang, error)
   }
+}
+
+/**
+ * Answer from the scheme pack on the device, and say honestly WHY.
+ *
+ * `offline` means the phone has no connection; `serverDown` means the phone is
+ * fine and our server did not answer (asleep, deploying, erroring). They get
+ * different words, because "check your internet" sends a user with working
+ * Wi-Fi off to fix the wrong thing.
+ */
+async function localFallback(text, lang, error) {
+  const kind = await classifyFailure(error)
+  const serverDown = kind !== 'offline'
+  return { ...localTurn(text, lang, { serverDown }), offline: !serverDown, serverDown }
 }
 
 export async function lookupScheme({ query, schemeId, category, lang }) {
@@ -72,9 +98,9 @@ export async function lookupScheme({ query, schemeId, category, lang }) {
       category: category ?? null,
       lang,
     })
-  } catch {
+  } catch (error) {
     announceReachability(false)
-    return { ...localTurn(query || category || '', lang), offline: true }
+    return localFallback(query || category || '', lang, error)
   }
 }
 
@@ -89,16 +115,11 @@ export async function readImage(dataUrl, lang) {
     return await post('/api/vision', { image: dataUrl, lang }, VISION_TIMEOUT_MS)
   } catch (err) {
     if (err?.name === 'AbortError') return { ok: false, reason: 'timeout' }
-    if (String(err?.message).startsWith('HTTP')) {
-      return { ok: false, reason: 'server', detail: err.message }
-    }
+    if (err?.status) return { ok: false, reason: 'server', detail: err.message }
     announceReachability(false)
-    const message = {
-      hi: 'तस्वीर पढ़ने के लिए इंटरनेट चाहिए। अभी इंटरनेट नहीं है।',
-      en: 'Reading a photo needs internet. There is no internet right now.',
-      mr: 'फोटो वाचण्यासाठी इंटरनेट लागते. सध्या इंटरनेट नाही.',
-    }
-    return { ok: false, reason: 'offline', speech: message[lang] || message.hi, offline: true }
+    // Only 'offline' when the phone itself has no connection.
+    const kind = await classifyFailure(err)
+    return { ok: false, reason: kind === 'offline' ? 'offline' : 'server_unreachable' }
   }
 }
 

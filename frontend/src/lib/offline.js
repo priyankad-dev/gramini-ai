@@ -117,6 +117,14 @@ const NO_NETWORK_CHAT = {
   mr: 'सध्या इंटरनेट नाही, त्यामुळे मी सामान्य गप्पा मारू शकत नाही. पण सरकारी योजनांबद्दल विचारू शकता.',
 }
 
+// The phone is online but our server did not answer (asleep, deploying, or
+// erroring). Telling this user "no internet" sends them to fix working Wi-Fi.
+const NO_SERVER_CHAT = {
+  hi: 'ग्रामिणी का सर्वर अभी जुड़ नहीं पा रहा, शायद चालू हो रहा है। थोड़ी देर में दोबारा पूछिए। सरकारी योजनाओं के बारे में अब भी पूछ सकते हैं।',
+  en: 'The Gramini server is not answering right now - it may be starting up. Please ask again in a moment. You can still ask about government schemes.',
+  mr: 'ग्रामिणीचा सर्व्हर सध्या जोडला जात नाही, कदाचित सुरू होत आहे. थोड्या वेळाने पुन्हा विचारा. सरकारी योजनांबद्दल अजूनही विचारू शकता.',
+}
+
 const NOT_FOUND = {
   hi: 'माफ़ कीजिए, इस योजना की पक्की जानकारी मेरे पास नहीं है। मैं अंदाज़े से नहीं बताऊँगा। अपने गाँव के CSC केंद्र से पूछिए।',
   en: 'Sorry, I do not have checked information about that scheme. I will not guess. Please ask at your village CSC centre.',
@@ -259,7 +267,7 @@ function searchCached(query, lang) {
 }
 
 /** Same response shape as POST /api/turn, produced entirely on the device. */
-export function localTurn(text, lang) {
+export function localTurn(text, lang, { serverDown = false } = {}) {
   const lowered = (text || '').toLowerCase().trim()
   const base = {
     intent: 'GENERAL_CHAT',
@@ -327,10 +335,12 @@ export function localTurn(text, lang) {
     }
   }
 
-  // Nothing matched and there is no network. Say so - do not invent an answer.
+  // Nothing matched and the server is out of reach. Say so - do not invent an
+  // answer - and say whether it is the phone or the server.
   const cached = getCachedSchemes(lang)
+  const noAnswer = serverDown ? NO_SERVER_CHAT : NO_NETWORK_CHAT
   return {
     ...base,
-    speech: cached ? NOT_FOUND[lang] || NOT_FOUND.hi : NO_NETWORK_CHAT[lang] || NO_NETWORK_CHAT.hi,
+    speech: cached ? NOT_FOUND[lang] || NOT_FOUND.hi : noAnswer[lang] || noAnswer.hi,
   }
 }

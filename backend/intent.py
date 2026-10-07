@@ -86,7 +86,22 @@ _WEATHER_WORDS = (
     "मौसम", "बारिश", "बरसात", "बादल", "धूप", "गर्मी", "ठंड", "तापमान", "आँधी",
     "हवामान", "पाऊस", "ऊन", "थंडी",
     "weather", "rain", "raining", "temperature", "forecast", "hot today",
-    "cold today", "storm",
+    "cold today", "storm", "humidity", "windy", "wind speed",
+    # Romanised, as en-IN recognition writes a Hindi or Marathi question:
+    # "Aaj ka mausam kaisa hai" used to fall through to general chat.
+    "mausam", "mosam", "baarish", "barish", "barsaat", "tapman", "taapmaan",
+    "havaman", "hawaman", "paus",
+    # Not "वारा" (Marathi: wind) - it matches inside "वाराणसी".
+    "नमी", "आर्द्रता",
+)
+
+# Farming decisions that hinge on the weather ("can I spray today?"). They are
+# answered from the live forecast, with hedged advice, rather than by the
+# model guessing - or by a scheme search, where "खेत में पानी" used to land.
+_FARM_WEATHER_WORDS = (
+    "spray", "pesticide", "irrigat", "water the field", "water my field",
+    "छिड़काव", "छिडकाव", "सिंचाई", "पानी देना", "पानी दें", "फवारणी", "पाणी द्याव",
+    "chhidkav",
 )
 
 _CAMERA_WORDS = (
@@ -164,6 +179,9 @@ def rule_parse(text: str) -> dict[str, Any] | None:
     # 5. Weather. Checked before schemes, because "आज बारिश होगी क्या" is about
     #    the sky, while "फसल बीमा" is about a scheme even though both mention rain.
     if _contains(lowered, _WEATHER_WORDS) and not _contains(lowered, _SCHEME_WORDS):
+        return {"intent": "WEATHER_QUERY", "lang": None, "query": text,
+                "source": "rules"}
+    if _contains(lowered, _FARM_WEATHER_WORDS) and not _contains(lowered, ("योजना", "scheme", "yojana", "subsidy", "अनुदान")):
         return {"intent": "WEATHER_QUERY", "lang": None, "query": text,
                 "source": "rules"}
 

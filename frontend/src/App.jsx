@@ -15,8 +15,9 @@ import { ChatStream } from './components/ChatStream'
 import { VisionMode } from './components/VisionMode'
 import { useLang } from './context/LanguageContext'
 import { useVoice } from './hooks/useVoice'
-import { useOnline } from './hooks/useOnline'
+import { useConnection } from './hooks/useOnline'
 import { lookupScheme, readImage, sendTurn, syncSchemes } from './lib/api'
+import { getApproxLocation, locationPermission, looksLikeWeather } from './lib/location'
 import { bcp47For } from './lib/voices'
 
 let messageId = 0
@@ -57,9 +58,10 @@ function imageFailureText(reason, t) {
     case 'empty':
       return t.imageErrUnclear
     case 'offline':
-    case 'network':
-    case 'dns':
       return t.imageNoAi
+    case 'server_unreachable':
+    case 'server':
+      return t.imageErrServer
     default:
       return t.imageErrGeneric
   }
@@ -67,7 +69,9 @@ function imageFailureText(reason, t) {
 
 export default function App() {
   const { lang, setLang, bcp47, t } = useLang()
-  const online = useOnline()
+  // `online` is the PHONE's connection; `connection` also says whether our
+  // server is reachable. A sleeping server is not "no internet".
+  const { status: connection, online } = useConnection()
   const { aiReady, dataStatus: healthDataStatus } = useAiStatus()
   // Per-service readout: which parts are live, cached, or out.
   const serviceHealth = useServiceHealth(online)
@@ -76,6 +80,12 @@ export default function App() {
   const [dataStatus, setDataStatus] = useState('sample')
   const [cameraOpen, setCameraOpen] = useState(false)
   const [cameraBusy, setCameraBusy] = useState(false)
+  // Shown in the typing bubble: "Getting current weather…" instead of dots.
+  const [thinkingLabel, setThinkingLabel] = useState(null)
+  // The question being answered, so it can be re-sent with the phone's
+  // location when the server asks for it.
+  const lastQueryRef = useRef('')
+  const locationRequestRef = useRef(null)
 
   /**
    * 'voice' is the designed mode: one big mic, hands free. 'chat' is the typed
@@ -214,6 +224,7 @@ export default function App() {
   const applyResult = useCallback(
     (result) => {
       if (!result) return
+      setThinkingLabel(null)
 
       if (result.data_status) setDataStatus(result.data_status)
 
@@ -249,6 +260,12 @@ export default function App() {
         return
       }
 
+      if (result.action === 'REQUEST_LOCATION') {
+        // "What is the weather here?" - the server needs the phone's location.
+        locationRequestRef.current?.(result)
+        return
+      }
+
       if (result.action === 'CAMERA_OPEN') {
         pushMessage({ role: 'ai', text: result.speech })
         // The camera takes over the screen; reopening the mic behind it would
@@ -277,6 +294,7 @@ export default function App() {
         cached: result.cached || false,
         cacheAgeSeconds: result.cache_age_seconds ?? null,
         offline: result.offline || false,
+        serverDown: result.serverDown || false,
       })
       say(result.speech, { lang: bcp47ForTurn })
     },
@@ -288,10 +306,12 @@ export default function App() {
   const handleTranscript = useCallback(
     async (text) => {
       pushMessage({ role: 'user', text })
+      lastQueryRef.current = text
+      setThinkingLabel(looksLikeWeather(text) ? t.weatherLoading : null)
       const result = await sendTurn(text, langRef.current)
       applyResult(result)
     },
-    [applyResult, pushMessage],
+    [applyResult, pushMessage, t],
   )
 
   // Typed input takes the same path as speech, so chat mode is not a second
@@ -299,10 +319,12 @@ export default function App() {
   const handleTyped = useCallback(
     async (text) => {
       pushMessage({ role: 'user', text })
+      lastQueryRef.current = text
+      setThinkingLabel(looksLikeWeather(text) ? t.weatherLoading : null)
       const result = await sendTurn(text, langRef.current)
       applyResult(result)
     },
-    [applyResult, pushMessage],
+    [applyResult, pushMessage, t],
   )
 
   const voice = useVoice({
@@ -317,12 +339,50 @@ export default function App() {
   // render cannot leave `say()` holding a stale voice handle.
   useEffect(() => { voiceRef.current = voice })
 
+  /**
+   * The server asked where the phone is (REQUEST_LOCATION).
+   *
+   * Explain first only when the browser is about to show its own prompt, then
+   * re-send the SAME question with coordinates rounded to ~1 km. If location
+   * is refused or unavailable, ask for a city out loud - the user can simply
+   * say it, no typing needed.
+   */
+  const handleLocationRequest = useCallback(
+    async (result) => {
+      const query = lastQueryRef.current
+      const permission = await locationPermission()
+      if (permission === 'prompt' || permission === 'unknown') {
+        pushMessage({ role: 'ai', text: result.speech })
+        say(result.speech, { listenAfter: false })
+      }
+
+      const location = await getApproxLocation()
+      if (location.lat !== undefined && query) {
+        setThinkingLabel(t.weatherLoading)
+        voiceRef.current?.setState('thinking')
+        const next = await sendTurn(query, langRef.current, location)
+        if (next?.action !== 'REQUEST_LOCATION') {
+          applyResult(next)
+          return
+        }
+      }
+
+      setThinkingLabel(null)
+      pushMessage({ role: 'ai', text: t.weatherAskCity })
+      say(t.weatherAskCity)
+    },
+    [applyResult, pushMessage, say, t],
+  )
+  useEffect(() => { locationRequestRef.current = handleLocationRequest }, [handleLocationRequest])
+
   // ------------------------------------------------------------------- actions
 
   const handleQuickAction = useCallback(
     async ({ utterance, category }) => {
       pushMessage({ role: 'user', text: utterance })
       voice.setState('thinking')
+      lastQueryRef.current = utterance
+      setThinkingLabel(!category && looksLikeWeather(utterance) ? t.weatherLoading : null)
 
       // Chips with a category skip intent parsing entirely - a tap is not
       // ambiguous, so there is nothing for a model to classify. Faster, and it
@@ -333,7 +393,7 @@ export default function App() {
 
       applyResult(result)
     },
-    [applyResult, pushMessage, voice],
+    [applyResult, pushMessage, voice, t],
   )
 
   const handlePickOther = useCallback(
@@ -367,7 +427,9 @@ export default function App() {
           role: 'ai',
           text,
           image: dataUrl,
-          offline: !result.ok,
+          // Only a real loss of connection earns the "no internet" badge; a
+          // spent quota or a bad photo is not the user's Wi-Fi.
+          offline: result.reason === 'offline',
         })
         say(text)
       } finally {
@@ -432,10 +494,11 @@ export default function App() {
         highContrast={highContrast}
         onToggleContrast={() => setHighContrast((v) => !v)}
         online={online}
+        connection={connection}
         aiReady={aiReady}
         usingCache={messages.some((m) => m.cached)}
       />
-      <OfflineBanner online={online} />
+      <OfflineBanner connection={connection} />
       <ServiceChips health={serviceHealth} />
       <LanguageNotices voiceAvailable={voice.voiceAvailable} voiceBlocked={voice.voiceBlocked} />
       {voice.micFailed && (
@@ -468,6 +531,7 @@ export default function App() {
               onPickOther={handlePickOther}
               onRepeat={handleRepeat}
               thinking={voice.state === 'thinking'}
+              thinkingLabel={thinkingLabel}
             />
             </ErrorBoundary>
           )}

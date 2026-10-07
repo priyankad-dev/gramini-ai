@@ -30,10 +30,12 @@ rather than to silence.
 from __future__ import annotations
 
 import json
+import re
 import logging
 import threading
 import time
 import traceback
+import urllib.error
 import urllib.parse
 import urllib.request
 from pathlib import Path
@@ -46,7 +48,7 @@ FORECAST_URL = "https://api.open-meteo.com/v1/forecast"
 TIMEOUT = 8
 
 CACHE_FILE = Path(__file__).parent / "data" / "weather_cache.json"
-CACHE_TTL = 30 * 60          # 30 minutes: a forecast older than this is stale
+CACHE_TTL = 10 * 60          # 10 minutes: "right now" must mean now, not half an hour ago
 STALE_MAX = 24 * 60 * 60     # but serve up to a day old rather than nothing
 
 # Where to look when the user names no place. Pune, because that is where the
@@ -179,7 +181,114 @@ _NOISE = {
     "weather", "rain", "raining", "today", "tomorrow", "what", "is", "the",
     "in", "at", "will", "it", "be", "how", "temperature", "forecast", "tell",
     "me", "about", "of", "for", "there", "now", "like", "hot", "cold",
+    # Everything below was being GEOCODED as a place. Each one produced a real
+    # forecast for the wrong town: "kitna" -> Kitna, "going" -> Going (Austria),
+    # "near" -> Neār, "yahan" -> Yahan, "कसं" -> an airport in Alabama.
+    "what's", "whats", "going", "to", "near", "my", "location", "here", "current",
+    "currently", "today's", "tomorrow's", "a", "do", "does", "should", "i", "can",
+    "we", "this", "week", "next", "days", "day", "please", "get", "check", "give",
+    "outside", "right", "humidity", "wind", "windy", "rainy", "sunny", "cloudy",
+    "spray", "pesticide", "water", "field", "fields", "crop", "crops", "irrigate",
+    "irrigation", "chance", "any", "there's", "expected", "lot", "much", "will",
+    # Romanised Hindi / Marathi, as en-IN recognition writes them
+    "aaj", "kal", "ka", "ki", "ke", "mein", "me", "mausam", "mosam", "kaisa",
+    "kaisi", "hai", "hoga", "hogi", "kya", "baarish", "barish", "barsaat",
+    "tapman", "taapmaan", "kitna", "kitni", "batao", "garmi", "thand", "yahan",
+    "yaha", "idhar", "havaman", "hawaman", "paus", "kasa", "kasa", "kasan", "aahe",
+    "padel", "udya", "kiti", "ithe",
+    # Hindi
+    "कितना", "कितनी", "यहाँ", "यहां", "इधर", "पास", "मेरे", "मेरी", "आसपास", "अभी",
+    "अगले", "दिन", "दिनों", "हफ़्ते", "हफ्ते", "छिड़काव", "खेत", "पानी", "देना",
+    "चाहिए", "दवा", "सिंचाई", "हवा", "नमी", "मौसम", "पड़ेगी", "आएगी", "होने", "वाली",
+    # Marathi
+    "कसं", "कसा", "कशी", "का", "आजचं", "आजचा", "उद्याचं", "उद्याचा", "इथे", "इथलं",
+    "इथं", "जवळ", "माझ्या", "फवारणी", "पाणी", "द्यावे", "द्यावं", "शेतात", "शेत",
+    "पुढील", "दिवस", "दिवसांचे",
+    # Verbs and numbers: "फवारणी करू का" found Karur, "तीन दिन" found Teen Murti.
+    "करू", "करावी", "करावं", "करायची", "करता", "येईल", "देऊ", "करूँ", "करें", "कर",
+    "सकता", "सकती", "सकते", "सकतो", "जाना", "डालें", "डालूँ",
+    "दो", "तीन", "चार", "पांच", "पाँच", "सात", "दोन", "पाच",
+    "teen", "din", "karu", "karun", "sakta", "sakte", "3", "5", "7",
 }
+
+# Marathi inflects the place itself: पुणे -> पुण्यात ("in Pune"),
+# पुण्याचं ("Pune's"). The gazetteer only knows the dictionary form, so
+# "पुण्यात" was geocoded as a non-existent "Punyaten".
+_MR_OBLIQUE = ("्याच्या", "्याचं", "्याचा", "्याची", "्याचे", "्यात", "्याला")
+_MR_SUFFIX = ("मध्ये", "मधे", "च्या", "ाचं", "ाचा", "ाची", "ाचे", "चं", "चा", "ची", "चे", "ात")
+
+
+def _stem_marathi(token: str) -> str:
+    """Dictionary form of an inflected Marathi place name, or the token unchanged."""
+    if not _is_devanagari(token):
+        return token
+    for suffix in _MR_OBLIQUE:
+        # The oblique stem of an -e noun is -्या: पुणे/पुण्या, ठाणे/ठाण्या.
+        if token.endswith(suffix) and len(token) > len(suffix) + 1:
+            return token[: -len(suffix)] + "े"
+    for suffix in _MR_SUFFIX:
+        # Length guard: a short word that merely ends in these letters is not
+        # an inflected place (नागपुरात -> नागपुर, नाशिकचं -> नाशिक).
+        if token.endswith(suffix) and len(token) - len(suffix) >= 3:
+            return token[: -len(suffix)]
+    # "-ला" (to/at): नागपूरला -> नागपूर. A stricter guard, because names
+    # themselves end in -ला: शिमला must stay शिमला.
+    if token.endswith("ला") and len(token) - 2 >= 4:
+        return token[:-2]
+    return token
+
+
+# The user wants THEIR weather, not a named town. The browser knows where
+# "here" is; the server must not guess.
+_HERE_WORDS = (
+    "near me", "my location", "my area", "around me", "here", "nearby",
+    "यहाँ", "यहां", "इधर", "मेरे पास", "मेरे इलाके", "आसपास",
+    "इथे", "इथं", "इथलं", "जवळ", "माझ्या भागात", "yahan", "idhar", "ithe",
+)
+
+
+def wants_here(text: str) -> bool:
+    lowered = (text or "").lower()
+    return any(word in lowered for word in _HERE_WORDS)
+
+
+# Which day the question is about. Hindi "कल" means both yesterday and
+# tomorrow, but nobody asks for yesterday's forecast.
+_TOMORROW_WORDS = ("tomorrow", "कल", "उद्या", "kal", "udya")
+_WEEK_WORDS = (
+    "this week", "next few days", "next days", "3 days", "three days", "forecast for the week",
+    "अगले", "हफ़्ते", "हफ्ते", "तीन दिन", "पुढील", "आठवड्या", "3 दिन",
+)
+
+
+def which_day(text: str) -> str:
+    lowered = (text or "").lower()
+    if any(word in lowered for word in _WEEK_WORDS):
+        return "week"
+    # Whole words for Latin ("tomorrow?" must count, "kalyan" must not);
+    # substring for Indic, which glues on suffixes.
+    words = set(re.findall(r"[a-z]+", lowered))
+    if any(w in words if w.isascii() else w in lowered for w in _TOMORROW_WORDS):
+        return "tomorrow"
+    return "today"
+
+
+# A farming decision that depends on the weather. These get the forecast
+# PLUS a clearly hedged piece of advice - never a certainty.
+_SPRAY_WORDS = ("spray", "pesticide", "छिड़काव", "छिडकाव", "दवा डाल", "फवारणी", "chhidkav")
+_IRRIGATE_WORDS = (
+    "irrigat", "water the field", "water my field", "water the crop", "सिंचाई",
+    "पानी देना", "पानी दें", "पानी दूँ", "पाणी द्याव", "पाणी देऊ", "paani dena",
+)
+
+
+def farm_question(text: str) -> str | None:
+    lowered = (text or "").lower()
+    if any(word in lowered for word in _SPRAY_WORDS):
+        return "spray"
+    if any(word in lowered for word in _IRRIGATE_WORDS):
+        return "irrigate"
+    return None
 
 # Administrative suffixes. "Beed district" and "Beed" are the same place to a
 # gazetteer, but the suffix makes the lookup miss.
@@ -237,6 +346,10 @@ def extract_place(text: str) -> str | None:
         if not token or len(token) < 2:
             continue
         low = token.lower()
+        if low in _NOISE:
+            continue
+        token = _stem_marathi(token)
+        low = token.lower()
         if low in _NOISE or low in _ADMIN_SUFFIX or low in _STATES:
             continue
         if low in _STATE_CODES and kept:
@@ -269,6 +382,11 @@ def _get(url: str, params: dict[str, Any]) -> dict[str, Any] | None:
     try:
         with urllib.request.urlopen(f"{url}?{query}", timeout=TIMEOUT) as response:
             return json.loads(response.read().decode("utf-8"))
+    except urllib.error.HTTPError as exc:
+        # 429 rate limit, 5xx provider error. Logged with the status so the
+        # cause is visible; the user hears only "not available right now".
+        log.warning("  weather provider returned HTTP %s for %s", exc.code, url)
+        return None
     except Exception as exc:
         log.warning("  request failed (%s): %s", type(exc).__name__, exc)
         log.debug("traceback:\n%s", traceback.format_exc())
@@ -279,7 +397,11 @@ def _get(url: str, params: dict[str, Any]) -> dict[str, Any] | None:
 
 
 def _lookup(name: str) -> dict[str, Any] | None:
-    data = _get(GEOCODE_URL, {"name": name, "count": 1, "language": "en", "format": "json"})
+    # India only. Unrestricted, a stray word found a town on another
+    # continent and the farmer heard its forecast as if it were theirs.
+    data = _get(GEOCODE_URL, {
+        "name": name, "count": 1, "language": "en", "format": "json", "countryCode": "IN",
+    })
     results = (data or {}).get("results") or []
     if not results:
         return None
@@ -487,14 +609,26 @@ _WMO = {
 }
 
 
+# Bump when the report shape changes: older cached reports lack the new fields
+# and are treated as a cache miss instead of crashing `describe`.
+REPORT_VERSION = 2
+
+# Spoken name for coordinates from the phone. Deliberately not a town name:
+# reverse geocoding would need another service, and "your area" is exactly
+# what the user asked about.
+_HERE_NAME = {"hi": "आपके इलाके", "en": "your area", "mr": "तुमच्या भाग"}
+
+
 def fetch(place: dict[str, Any]) -> dict[str, Any] | None:
     data = _get(FORECAST_URL, {
         "latitude": place["lat"],
         "longitude": place["lon"],
-        "current": "temperature_2m,relative_humidity_2m,weather_code",
-        "daily": "temperature_2m_max,temperature_2m_min,precipitation_probability_max,weather_code",
+        "current": "temperature_2m,apparent_temperature,relative_humidity_2m,"
+                   "weather_code,wind_speed_10m",
+        "daily": "temperature_2m_max,temperature_2m_min,precipitation_probability_max,"
+                 "weather_code,wind_speed_10m_max",
         "timezone": "Asia/Kolkata",
-        "forecast_days": 2,
+        "forecast_days": 3,
     })
     if not data or "current" not in data:
         return None
@@ -506,103 +640,216 @@ def fetch(place: dict[str, Any]) -> dict[str, Any] | None:
         values = daily.get(key) or []
         return values[index] if len(values) > index else None
 
+    def rounded(value: Any) -> int | None:
+        return round(value) if isinstance(value, (int, float)) else None
+
+    days = [
+        {
+            "date": day(i, "time"),
+            "max": rounded(day(i, "temperature_2m_max")),
+            "min": rounded(day(i, "temperature_2m_min")),
+            "rain": day(i, "precipitation_probability_max"),
+            "code": day(i, "weather_code"),
+            "wind_max": rounded(day(i, "wind_speed_10m_max")),
+        }
+        for i in range(len(daily.get("time") or []))
+    ]
+
     return {
-        "place": place.get("name") or DEFAULT_PLACE["name"],
+        "v": REPORT_VERSION,
+        "place": place.get("name"),          # None = the user's own location
         "admin": place.get("admin"),
-        "temp_now": round(current.get("temperature_2m", 0)),
+        "observed_at": current.get("time"),
+        "temp_now": rounded(current.get("temperature_2m")),
+        "feels_like": rounded(current.get("apparent_temperature")),
         "humidity": current.get("relative_humidity_2m"),
+        "wind_now": rounded(current.get("wind_speed_10m")),
         "code": current.get("weather_code"),
-        "today_max": round(day(0, "temperature_2m_max") or 0),
-        "today_min": round(day(0, "temperature_2m_min") or 0),
-        "rain_today": day(0, "precipitation_probability_max"),
-        "rain_tomorrow": day(1, "precipitation_probability_max"),
+        # Kept under the old names too: the WeatherCard and older callers read them.
+        "today_max": days[0]["max"] if days else None,
+        "today_min": days[0]["min"] if days else None,
+        "rain_today": days[0]["rain"] if days else None,
+        "rain_tomorrow": days[1]["rain"] if len(days) > 1 else None,
+        "days": days,
         "source": "Open-Meteo",
     }
 
 
-def describe(report: dict[str, Any], lang: str) -> str:
-    """Build the spoken sentence from the numbers. No model involved."""
+def _sky(code: Any, lang: str) -> str:
+    return _WMO.get(code, _WMO[3])[lang]
+
+
+# Spraying in wind drifts onto the wrong field; rain washes it off. These
+# thresholds are a conservative rule of thumb, which is why every piece of
+# advice is phrased as a suggestion.
+_WINDY_KMH = 15
+_RAINY_PCT = 50
+
+
+def _advice(farm: str, info: dict[str, Any], lang: str) -> str:
+    """Hedged advice built from the forecast. ADVICE, never a promise."""
+    rain = info.get("rain") or 0
+    wind = info.get("wind") or 0
+    if farm == "spray":
+        if rain >= _RAINY_PCT or wind >= _WINDY_KMH:
+            why = {
+                "hi": "बारिश की संभावना ज़्यादा है" if rain >= _RAINY_PCT else "हवा तेज़ है",
+                "en": "the chance of rain is high" if rain >= _RAINY_PCT else "the wind is strong",
+                "mr": "पावसाची शक्यता जास्त आहे" if rain >= _RAINY_PCT else "वारा जोरात आहे",
+            }[lang]
+            return {
+                "hi": f"सलाह: {why}, इसलिए छिड़काव टालना बेहतर हो सकता है। फिर भी खेत पर आसमान देखकर तय कीजिए।",
+                "en": f"Advice: {why}, so it may be better to wait before spraying. Check the sky at your field before deciding.",
+                "mr": f"सल्ला: {why}, त्यामुळे फवारणी पुढे ढकलणे चांगले ठरू शकते. तरीही शेतावर आकाश पाहून ठरवा.",
+            }[lang]
+        return {
+            "hi": "सलाह: बारिश की संभावना कम और हवा धीमी है, इसलिए छिड़काव के लिए मौसम ठीक लगता है। यह पूर्वानुमान है, पक्का नहीं — खेत पर आसमान देखकर तय कीजिए।",
+            "en": "Advice: rain looks unlikely and the wind is light, so the weather seems suitable for spraying. This is a forecast, not a guarantee - check the sky at your field.",
+            "mr": "सल्ला: पावसाची शक्यता कमी आणि वारा मंद आहे, त्यामुळे फवारणीसाठी हवामान योग्य वाटते. हा अंदाज आहे, खात्री नाही — शेतावर आकाश पाहून ठरवा.",
+        }[lang]
+    # irrigation
+    if rain >= 60:
+        return {
+            "hi": "सलाह: बारिश की अच्छी संभावना है, इसलिए पानी देने से पहले थोड़ा रुक सकते हैं। पर बारिश पक्की नहीं है — मिट्टी की नमी देखकर तय कीजिए।",
+            "en": "Advice: rain is fairly likely, so you could wait before watering. Rain is not certain - check the soil moisture before deciding.",
+            "mr": "सल्ला: पावसाची चांगली शक्यता आहे, त्यामुळे पाणी देण्यापूर्वी थोडे थांबू शकता. पण पाऊस नक्की नाही — मातीतील ओलावा पाहून ठरवा.",
+        }[lang]
+    return {
+        "hi": "सलाह: बारिश की संभावना कम है। मिट्टी सूखी हो तो पानी दे सकते हैं — पहले मिट्टी की नमी देख लीजिए।",
+        "en": "Advice: rain is unlikely. If the soil is dry you can water - check the soil moisture first.",
+        "mr": "सल्ला: पावसाची शक्यता कमी आहे. माती कोरडी असेल तर पाणी देऊ शकता — आधी मातीतील ओलावा पहा.",
+    }[lang]
+
+
+def describe(report: dict[str, Any], lang: str, day: str = "today",
+             farm: str | None = None) -> str:
+    """Build the spoken sentence from the numbers. No model involved.
+
+    Every number comes from the forecast. Advice, when asked for, is a separate
+    sentence that starts with "Advice:" so it is never heard as a fact.
+    """
     lang = lang if lang in ("hi", "en", "mr") else "hi"
-    sky = _WMO.get(report.get("code"), _WMO[3])[lang]
-    place = report["place"]
+    place = report.get("place") or _HERE_NAME[lang]
+    days = report.get("days") or []
+    # Marathi: "Pune मध्ये" but "तुमच्या भागात" - the locative fuses for "area".
+    at = f"{place} मध्ये" if report.get("place") else "तुमच्या भागात"
+
+    if day == "week" and days:
+        labels = {
+            "hi": ["आज", "कल", "परसों"], "en": ["Today", "Tomorrow", "The day after"],
+            "mr": ["आज", "उद्या", "परवा"],
+        }[lang]
+        parts = []
+        for label, d in zip(labels, days):
+            rain = d.get("rain") or 0
+            sky = _sky(d.get("code"), lang)
+            parts.append({
+                "hi": f"{label} {d['min']} से {d['max']} डिग्री, {sky}, बारिश की संभावना {rain} प्रतिशत।",
+                "en": f"{label}: {d['min']} to {d['max']} degrees, {sky}, {rain} per cent chance of rain.",
+                "mr": f"{label} {d['min']} ते {d['max']} अंश, {sky}, पावसाची शक्यता {rain} टक्के.",
+            }[lang])
+        intro = {"hi": f"{place} में अगले दिनों का मौसम।", "en": f"The next few days in {place}.",
+                 "mr": f"{at} पुढील दिवसांचे हवामान."}[lang]
+        return " ".join([intro, *parts])
+
+    if day == "tomorrow" and len(days) > 1:
+        d = days[1]
+        rain = d.get("rain") or 0
+        sky = _sky(d.get("code"), lang)
+        text = {
+            "hi": f"{place} में कल तापमान {d['min']} से {d['max']} डिग्री रहेगा और {sky}। कल बारिश की संभावना {rain} प्रतिशत है।",
+            "en": f"Tomorrow in {place} it will be {d['min']} to {d['max']} degrees, {sky}. The chance of rain tomorrow is {rain} per cent.",
+            "mr": f"{at} उद्या तापमान {d['min']} ते {d['max']} अंश राहील, {sky}. उद्या पावसाची शक्यता {rain} टक्के आहे.",
+        }[lang]
+        if farm:
+            text += " " + _advice(farm, {"rain": rain, "wind": d.get("wind_max")}, lang)
+        return text
+
     rain = report.get("rain_today") or 0
-    rain_tomorrow = report.get("rain_tomorrow") or 0
+    sky = _sky(report.get("code"), lang)
+    feels = report.get("feels_like")
+    now = report.get("temp_now")
+    feels_part = ""
+    if feels is not None and now is not None and abs(feels - now) >= 3:
+        feels_part = {"hi": f", पर {feels} डिग्री जैसा महसूस हो रहा है",
+                      "en": f", but it feels like {feels}",
+                      "mr": f", पण {feels} अंशांसारखे जाणवते"}[lang]
+    humidity = report.get("humidity")
+    wind = report.get("wind_now")
 
     if lang == "en":
-        text = (
-            f"In {place} it is {report['temp_now']} degrees right now and {sky}. "
-            f"Today it will be between {report['today_min']} and {report['today_max']} degrees. "
-        )
-        if rain >= 60:
-            text += f"There is a strong chance of rain today, about {rain} per cent. Cover your grain and spray later. "
-        elif rain >= 30:
-            text += f"There is some chance of rain today, about {rain} per cent. "
-        else:
-            text += "Rain is unlikely today. "
-        if rain_tomorrow >= 60:
-            text += f"Tomorrow the chance of rain is higher, about {rain_tomorrow} per cent."
-        return text.strip()
-
-    if lang == "mr":
-        text = (
-            f"{place} मध्ये आत्ता {report['temp_now']} अंश तापमान आहे आणि {sky}. "
-            f"आज तापमान {report['today_min']} ते {report['today_max']} अंशांदरम्यान राहील. "
-        )
-        if rain >= 60:
-            text += f"आज पावसाची शक्यता जास्त आहे, सुमारे {rain} टक्के. धान्य झाकून ठेवा आणि फवारणी नंतर करा. "
-        elif rain >= 30:
-            text += f"आज पावसाची थोडी शक्यता आहे, सुमारे {rain} टक्के. "
-        else:
-            text += "आज पाऊस पडण्याची शक्यता कमी आहे. "
-        if rain_tomorrow >= 60:
-            text += f"उद्या पावसाची शक्यता जास्त आहे, सुमारे {rain_tomorrow} टक्के."
-        return text.strip()
-
-    text = (
-        f"{place} में अभी {report['temp_now']} डिग्री तापमान है और {sky}. "
-        f"आज तापमान {report['today_min']} से {report['today_max']} डिग्री के बीच रहेगा। "
-    )
-    if rain >= 60:
-        text += f"आज बारिश की पूरी संभावना है, करीब {rain} प्रतिशत। अनाज ढक दीजिए और छिड़काव बाद में कीजिए। "
-    elif rain >= 30:
-        text += f"आज हल्की बारिश हो सकती है, करीब {rain} प्रतिशत। "
+        text = (f"In {place} it is {now} degrees right now{feels_part}, and {sky}. "
+                f"Today it will be between {report['today_min']} and {report['today_max']} degrees, "
+                f"with a {rain} per cent chance of rain.")
+        if humidity is not None and wind is not None:
+            text += f" Humidity is {humidity} per cent and the wind is {wind} kilometres per hour."
+    elif lang == "mr":
+        text = (f"{at} आत्ता {now} अंश तापमान आहे{feels_part}, आणि {sky}. "
+                f"आज तापमान {report['today_min']} ते {report['today_max']} अंश राहील, पावसाची शक्यता {rain} टक्के आहे.")
+        if humidity is not None and wind is not None:
+            text += f" आर्द्रता {humidity} टक्के आणि वारा ताशी {wind} किलोमीटर आहे."
     else:
-        text += "आज बारिश की संभावना कम है। "
-    if rain_tomorrow >= 60:
-        text += f"कल बारिश की संभावना ज़्यादा है, करीब {rain_tomorrow} प्रतिशत।"
-    return text.strip()
+        text = (f"{place} में अभी {now} डिग्री तापमान है{feels_part}, और {sky}। "
+                f"आज तापमान {report['today_min']} से {report['today_max']} डिग्री के बीच रहेगा, बारिश की संभावना {rain} प्रतिशत है।")
+        if humidity is not None and wind is not None:
+            text += f" नमी {humidity} प्रतिशत है और हवा {wind} किलोमीटर प्रति घंटा है।"
+
+    if farm:
+        day0 = days[0] if days else {}
+        text += " " + _advice(farm, {"rain": rain, "wind": max(wind or 0, day0.get("wind_max") or 0)}, lang)
+    elif rain >= 60:
+        text += {"hi": " अनाज ढककर रखना अच्छा रहेगा।", "en": " It may be wise to cover your grain.",
+                 "mr": " धान्य झाकून ठेवणे चांगले ठरेल."}[lang]
+    return text
 
 
 _STALE_NOTE = {
-    "hi": " यह जानकारी थोड़ी पुरानी है, क्योंकि अभी इंटरनेट नहीं है।",
-    "en": " This information is a little old, because there is no internet right now.",
-    "mr": " ही माहिती थोडी जुनी आहe, कारण सध्या इंटरनेट नाही.",
+    "hi": " यह जानकारी थोड़ी पुरानी है, क्योंकि मौसम सेवा से अभी ताज़ा जानकारी नहीं मिल पाई।",
+    "en": " This information is a little old, because fresh data could not be fetched from the weather service.",
+    "mr": " ही माहिती थोडी जुनी आहे, कारण हवामान सेवेकडून सध्या ताजी माहिती मिळाली नाही.",
 }
 
 _UNKNOWN_PLACE = {
-    "hi": "मैं {name} का मौसम नहीं ढूँढ पाया। कृपया अपने ज़िले का नाम बताइए।",
-    "en": "I could not find the weather for {name}. Please tell me your district name.",
-    "mr": "मला {name} चे हवामान सापडले नाही. कृपया तुमच्या जिल्ह्याचे नाव सांगा.",
+    "hi": "मैं {name} का मौसम नहीं ढूँढ पाया। कृपया अपने शहर या ज़िले का नाम बताइए।",
+    "en": "I could not find the weather for {name}. Please tell me your city or district name.",
+    "mr": "मला {name} चे हवामान सापडले नाही. कृपया तुमच्या शहराचे किंवा जिल्ह्याचे नाव सांगा.",
 }
 
+# Never "no internet": by the time this is said the phone has reached our
+# server, so it is the weather provider that is unavailable.
 _NO_DATA = {
-    "hi": "अभी मौसम की जानकारी नहीं मिल पा रही। इंटरनेट आने पर दोबारा पूछिए।",
-    "en": "I cannot get the weather right now. Please ask again when the internet is back.",
-    "mr": "सध्या हवामानाची माहिती मिळत नाही. इंटरनेट आल्यावर पुन्हा विचारा.",
+    "hi": "मौसम की जानकारी अभी उपलब्ध नहीं है। कृपया थोड़ी देर बाद प्रयास करें।",
+    "en": "Weather information is not available right now. Please try again in a little while.",
+    "mr": "हवामानाची माहिती सध्या उपलब्ध नाही. कृपया थोड्या वेळाने प्रयत्न करा.",
 }
 
 
-def answer(place_name: str | None, lang: str) -> dict[str, Any] | None:
-    """Full weather answer for a spoken place.
+def _speech(report: dict[str, Any], lang: str, day: str, farm: str | None) -> str:
+    return describe(report, lang, day=day, farm=farm)
+
+
+def answer(
+    place_name: str | None,
+    lang: str,
+    *,
+    coords: tuple[float, float] | None = None,
+    day: str = "today",
+    farm: str | None = None,
+) -> dict[str, Any] | None:
+    """Full weather answer for a spoken place, or for the phone's location.
 
     Order: fresh cache -> live fetch -> stale cache -> honest failure.
+
+    `coords` are the phone's own coordinates, already rounded by the browser.
+    They go to the forecast service and nowhere else - never to the model.
 
     If the user NAMED a place we could not resolve, we say so rather than
     quietly reporting somewhere else. Telling a farmer in Jalgaon it will not
     rain, when the forecast was for Pune, is exactly the confident wrong answer
     this project exists to avoid.
     """
-    log.info("weather request: place=%r lang=%s", place_name, lang)
+    log.info("weather request: place=%r coords=%s lang=%s day=%s farm=%s",
+             place_name, bool(coords), lang, day, farm)
 
     if place_name:
         normalised = normalise(place_name)
@@ -614,7 +861,7 @@ def answer(place_name: str | None, lang: str) -> dict[str, Any] | None:
             # place was answered earlier - an offline user asking about their own
             # district must not be told it does not exist.
             entry, age = find_cached_by_name(place_name)
-            if entry and age < STALE_MAX:
+            if entry and age < STALE_MAX and entry["weather_data"].get("v") == REPORT_VERSION:
                 log.warning(
                     "  geocoder unreachable - answering %r from cache (%.0f min old)",
                     entry.get("location"), age / 60,
@@ -624,7 +871,7 @@ def answer(place_name: str | None, lang: str) -> dict[str, Any] | None:
                 return {
                     "report": report, "cached": True, "stale": True,
                     "cache_age_seconds": round(age),
-                    "speech": describe(report, lang) + note,
+                    "speech": _speech(report, lang, day, farm) + note,
                 }
 
             template = _UNKNOWN_PLACE.get(lang) or _UNKNOWN_PLACE["hi"]
@@ -634,17 +881,22 @@ def answer(place_name: str | None, lang: str) -> dict[str, Any] | None:
                 "cached": False,
                 "speech": template.format(name=normalised or place_name),
             }
+    elif coords:
+        place = {"name": None, "lat": coords[0], "lon": coords[1]}
     else:
+        # Callers ask the phone for its location before reaching here; this is
+        # only for direct API use with no place and no coordinates.
         place = DEFAULT_PLACE
-        log.info("  no place named, defaulting to %s", place["name"])
+        log.info("  no place or coordinates, defaulting to %s", place["name"])
 
     entry, age = _read_cached(place)
+    usable = entry and entry["weather_data"].get("v") == REPORT_VERSION
 
-    if entry and age < CACHE_TTL:
+    if usable and age < CACHE_TTL:
         log.info("  CACHE HIT (%.0fs old) - no network request", age)
         report = entry["weather_data"]
         return {"report": report, "cached": True, "cache_age_seconds": round(age),
-                "speech": describe(report, lang)}
+                "speech": _speech(report, lang, day, farm)}
 
     log.info("  cache %s - fetching from Open-Meteo",
              f"stale ({age:.0f}s)" if entry else "miss")
@@ -653,11 +905,11 @@ def answer(place_name: str | None, lang: str) -> dict[str, Any] | None:
     if report:
         _write_cached(place, report)
         return {"report": report, "cached": False, "cache_age_seconds": 0,
-                "speech": describe(report, lang)}
+                "speech": _speech(report, lang, day, farm)}
 
-    # Network failed. Anything cached beats nothing, as long as we say so.
-    if entry and age < STALE_MAX:
-        log.warning("  network failed - serving cached forecast %.0f minutes old", age / 60)
+    # Provider failed. Anything cached beats nothing, as long as we say so.
+    if usable and age < STALE_MAX:
+        log.warning("  provider failed - serving cached forecast %.0f minutes old", age / 60)
         report = entry["weather_data"]
         note = _STALE_NOTE.get(lang) or _STALE_NOTE["hi"]
         return {
@@ -665,11 +917,11 @@ def answer(place_name: str | None, lang: str) -> dict[str, Any] | None:
             "cached": True,
             "stale": True,
             "cache_age_seconds": round(age),
-            "speech": describe(report, lang) + note,
+            "speech": _speech(report, lang, day, farm) + note,
         }
 
-    log.error("  network failed and no usable cache for %s", place.get("name"))
-    return {"report": None, "cached": False,
+    log.error("  provider failed and no usable cache for %s", place.get("name") or "coordinates")
+    return {"report": None, "cached": False, "unavailable": True,
             "speech": _NO_DATA.get(lang) or _NO_DATA["hi"]}
 
 

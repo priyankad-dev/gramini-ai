@@ -45,6 +45,7 @@ export function Header({
   highContrast,
   onToggleContrast,
   online = true,
+  connection = 'online',
   aiReady,
   usingCache,
 }) {
@@ -74,7 +75,7 @@ export function Header({
             <p className="truncate text-base font-bold leading-tight text-ink">
               {t.appName}
             </p>
-            <StatusChip online={online} aiReady={aiReady} usingCache={usingCache} />
+            <StatusChip online={online} connection={connection} aiReady={aiReady} usingCache={usingCache} />
           </div>
         </div>
 

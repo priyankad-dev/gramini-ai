@@ -20,7 +20,7 @@ from dotenv import load_dotenv
 _ENV_PATH = Path(__file__).parent / ".env"
 _ENV_LOADED = load_dotenv(_ENV_PATH, override=True)
 
-from fastapi import FastAPI  # noqa: E402
+from fastapi import FastAPI, Query  # noqa: E402
 from fastapi.middleware.cors import CORSMiddleware  # noqa: E402
 from fastapi.staticfiles import StaticFiles  # noqa: E402
 from pydantic import BaseModel, Field  # noqa: E402
@@ -133,6 +133,11 @@ class TurnRequest(BaseModel):
             "without being asked. Set false to pin the language."
         ),
     )
+    # The phone's location, sent only after the server asked for it with
+    # REQUEST_LOCATION. Rounded by the browser to ~1 km, used only for the
+    # forecast lookup and never passed to the model.
+    lat: float | None = Field(None, ge=-90, le=90)
+    lon: float | None = Field(None, ge=-180, le=180)
 
 
 class SchemeRequest(BaseModel):
@@ -262,6 +267,12 @@ _VISION_PROMPT = {
     "mr": "या पिकाचा किंवा झाडाचा फोटो तपासा. उत्तर फक्त अगदी सोप्या मराठीत द्या.",
 }
 
+_ASK_LOCATION = {
+    "hi": "मौसम की जानकारी देने के लिए कृपया अपनी लोकेशन की अनुमति दें।",
+    "en": "Please allow location access so I can provide weather information.",
+    "mr": "हवामानाची माहिती देण्यासाठी कृपया लोकेशनची परवानगी द्या.",
+}
+
 _VISION_FAIL = {
     "hi": "माफ़ कीजिए, मैं यह तस्वीर अभी नहीं पढ़ पाया। कृपया दोबारा कोशिश कीजिए।",
     "en": "Sorry, I could not read this photo right now. Please try again.",
@@ -328,6 +339,18 @@ def _lang_confirm(lang: str) -> str:
 
 
 # ------------------------------------------------------------------------- endpoints
+
+
+@app.get("/health")
+def liveness() -> dict:
+    """Is this server up? Nothing else.
+
+    The frontend polls this to tell "the phone has no internet" apart from "our
+    server is asleep or down". It must answer instantly and never touch Gemini,
+    the disk or the network, so a spent quota or a slow cache can never make a
+    working connection look broken.
+    """
+    return {"status": "ok", "service": "gramini-backend"}
 
 
 @app.get("/api/health")
@@ -563,14 +586,23 @@ def turn(req: TurnRequest) -> dict:
         # The model is not asked what the weather is - it does not know, and a
         # confident wrong forecast costs a farmer a day's work.
         place = _place_from(text)
-        result = weather.answer(place, lang)
+        coords = (req.lat, req.lon) if req.lat is not None and req.lon is not None else None
+
+        # No town named ("आज का मौसम कैसा है?", "near me"): the user means
+        # where they are. This used to answer for Pune regardless, which is a
+        # confident forecast for somewhere the farmer is not. Ask the phone.
+        if not place and not coords:
+            return {**base, "action": "REQUEST_LOCATION",
+                    "speech": _say(_ASK_LOCATION, lang, "weatherAskLocation")}
+
+        result = weather.answer(
+            place, lang,
+            coords=None if place else coords,
+            day=weather.which_day(text),
+            farm=weather.farm_question(text),
+        )
         if not result:
-            no_net = {
-                "hi": "अभी मौसम की जानकारी नहीं मिल पा रही। इंटरनेट आने पर दोबारा पूछिए।",
-                "en": "I cannot get the weather right now. Please ask again when the internet is back.",
-                "mr": "सध्या हवामानाची माहिती मिळत नाही. इंटरनेट आल्यावर पुन्हा विचारा.",
-            }
-            return {**base, "speech": _say(no_net, lang, "weatherFail")}
+            return {**base, "speech": _say(weather._NO_DATA, lang, "weatherFail")}
 
         speech = result["speech"]
         report = result.get("report")
@@ -632,6 +664,38 @@ def vision(req: VisionRequest) -> dict:
     return {"ok": False, "lang": lang, "ai_available": False,
             "reason": reason,
             "speech": _say(_VISION_FAIL, lang, "visionFail")}
+
+
+@app.get("/api/weather")
+def weather_lookup(
+    city: str | None = None,
+    lat: float | None = Query(None, ge=-90, le=90),
+    lon: float | None = Query(None, ge=-180, le=180),
+    lang: str = "hi",
+    day: str = "today",
+) -> dict:
+    """The same live forecast the chat uses, for a city or for coordinates.
+
+    Returns the normalised report (no raw provider payload) plus the spoken
+    sentence. Chat goes through /api/turn; this exists for direct use and
+    for checking the weather pipeline on its own.
+    """
+    lang = _clean_lang(lang)
+    if not city and (lat is None or lon is None):
+        return {"ok": False, "reason": "no_location",
+                "speech": _say(_ASK_LOCATION, lang, "weatherAskLocation")}
+    result = weather.answer(
+        city, lang,
+        coords=(lat, lon) if not city else None,
+        day=day if day in ("today", "tomorrow", "week") else "today",
+    )
+    report = (result or {}).get("report")
+    speech = (result or {}).get("speech") or _say(weather._NO_DATA, lang, "weatherFail")
+    if not languages.is_tier1(lang):
+        speech = translate.translate_text(speech, lang, key=f"weather.api.{city or 'here'}.{day}")
+    return {"ok": bool(report), "lang": lang, "weather": report, "speech": speech,
+            "cached": (result or {}).get("cached", False),
+            "unknown_place": (result or {}).get("unknown_place")}
 
 
 @app.post("/api/reload-schemes")

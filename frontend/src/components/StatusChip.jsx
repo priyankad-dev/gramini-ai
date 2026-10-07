@@ -26,7 +26,7 @@ const DOT = {
   danger: 'bg-danger',
 }
 
-export function StatusChip({ online, aiReady, usingCache }) {
+export function StatusChip({ online, connection = 'online', aiReady, usingCache }) {
   const { t } = useLang()
 
   let tone = 'ok'
@@ -34,6 +34,11 @@ export function StatusChip({ online, aiReady, usingCache }) {
   if (!online) {
     tone = 'danger'
     label = t.statusOffline
+  } else if (connection !== 'online') {
+    // Internet works; our server does not answer. Amber, not red, and never
+    // the word "internet".
+    tone = 'warn'
+    label = t.statusServer
   } else if (usingCache) {
     tone = 'warn'
     label = t.statusCached

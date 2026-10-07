@@ -69,8 +69,9 @@ export function useServiceHealth(online) {
         }
       } catch {
         // Backend unreachable. Everything server-side is down, but the cached
-        // scheme pack and recorded audio in the browser still work.
-        internet = DOWN
+        // scheme pack and recorded audio in the browser still work. The
+        // INTERNET chip is left to `online`: a sleeping server is not the
+        // phone's connection, and calling it that sent users to fix their Wi-Fi.
         gemini = DOWN
         weather = CACHED
       }

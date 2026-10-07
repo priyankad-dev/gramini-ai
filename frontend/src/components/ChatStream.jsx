@@ -24,7 +24,7 @@ function timeOf(message) {
 }
 
 /** Three dots while the answer is being fetched. */
-export function TypingBubble() {
+export function TypingBubble({ label = null }) {
   const { t } = useLang()
   return (
     <div className="flex gap-3">
@@ -35,7 +35,7 @@ export function TypingBubble() {
         🌾
       </span>
       <div className="rounded-card rounded-tl-sm border border-line bg-raised px-4 py-3 shadow-card">
-        <span className="sr-only">{t.thinking}</span>
+        <span className={label ? 'mb-1.5 block text-sm text-muted' : 'sr-only'}>{label || t.thinking}</span>
         <span aria-hidden="true" className="flex items-center gap-1.5">
           {[0, 1, 2].map((i) => (
             <span
@@ -53,7 +53,7 @@ export function TypingBubble() {
   )
 }
 
-export function ChatStream({ messages, onPickOther, onRepeat, thinking }) {
+export function ChatStream({ messages, onPickOther, onRepeat, thinking, thinkingLabel = null }) {
   const { t } = useLang()
   const endRef = useRef(null)
 
@@ -101,6 +101,10 @@ export function ChatStream({ messages, onPickOther, onRepeat, thinking }) {
         if (message.offline) {
           badges.push(
             <Badge key="offline" tone="warn" icon="📴">{t.statusOffline}</Badge>,
+          )
+        } else if (message.serverDown) {
+          badges.push(
+            <Badge key="server" tone="warn" icon="⏳">{t.statusServer}</Badge>,
           )
         }
 
@@ -185,7 +189,7 @@ export function ChatStream({ messages, onPickOther, onRepeat, thinking }) {
         )
       })}
 
-      {thinking && <TypingBubble />}
+      {thinking && <TypingBubble label={thinkingLabel} />}
       <div ref={endRef} />
     </div>
   )

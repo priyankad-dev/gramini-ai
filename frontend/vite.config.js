@@ -12,6 +12,11 @@ export default defineConfig({
         target: 'http://127.0.0.1:8000',
         changeOrigin: true,
       },
+      // Liveness probe used by useConnection.
+      '/health': {
+        target: 'http://127.0.0.1:8000',
+        changeOrigin: true,
+      },
       // Pre-recorded speech, served by the backend as static WAV files.
       // Without this rule Vite answers /audio/* with its SPA fallback, so the
       // offline voice fallback silently receives index.html instead of audio.
