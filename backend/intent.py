@@ -45,6 +45,13 @@ _SWITCH_WORDS = (
     "बोल", "बोलो", "बोलिए", "सांग", "सांगा", "मध्ये कर", "बदला", "कर",
     # English
     "change", "switch", "speak", "talk", "set to", "make it", "in",
+    # What the recogniser actually WRITES. In Hindi mode, "speak in English" is
+    # transcribed in Devanagari ("स्पीक इन इंग्लिश"); in English mode, "हिंदी में
+    # बोलो" comes back romanised ("Hindi mein bolo"). Without these, a spoken
+    # switch fell through to scheme search or chat, and once in English there
+    # was no way back by voice.
+    "स्पीक", "टॉक", "स्विच",
+    "bolo", "boliye", "bolie", "bola", "baat", "badlo", "badal do", "sanga",
     # Bengali / Assamese / Odia
     "বল", "বলুন", "কথা বল", "কও", "କୁହ", "କଥା",
     # Telugu / Kannada / Tamil / Malayalam

@@ -47,6 +47,8 @@ function overlap(heard, spoken) {
   return shared / a.size
 }
 
+let voiceListWaited = false
+
 export function useVoice({ bcp47, onFinalTranscript, online = true }) {
   const [state, setState] = useState('idle')
   const [interim, setInterim] = useState('')
@@ -74,7 +76,24 @@ export function useVoice({ bcp47, onFinalTranscript, online = true }) {
   const cancelClipRef = useRef(null)   // stops a recorded clip mid-play
   const listenTimerRef = useRef(null)  // hard stop for a mic that never returns
 
-  useEffect(() => { langRef.current = bcp47 }, [bcp47])
+  const startListeningRef = useRef(null)
+  useEffect(() => {
+    if (langRef.current === bcp47) return undefined
+    langRef.current = bcp47
+    // `recognition.lang` is read when a session STARTS. A language picked while
+    // the mic is already open would otherwise only apply from the next turn,
+    // and this whole sentence would be transcribed in the old language.
+    if (!wantListenRef.current || busyRef.current) return undefined
+    try {
+      recognitionRef.current?.abort()
+    } catch {
+      // already stopped
+    }
+    const timer = setTimeout(() => {
+      if (wantListenRef.current) startListeningRef.current?.()
+    }, 250)
+    return () => clearTimeout(timer)
+  }, [bcp47])
   useEffect(() => { onlineRef.current = online }, [online])
   // Fetched while online, kept in localStorage - looking up what recordings
   // exist must not itself need a network.
@@ -141,7 +160,12 @@ export function useVoice({ bcp47, onFinalTranscript, online = true }) {
       // 'network' and 'service-not-allowed' mean recognition cannot work at all
       // here - recognition is a server-side service, so it is the first thing
       // to die when the connection does.
-      if (event.error === 'network' || event.error === 'service-not-allowed') {
+      // 'not-allowed' is the microphone permission itself: blocked for the
+      // site, or the prompt dismissed. It gets its own message, because "type
+      // instead" alone does not tell the user that one setting would fix it.
+      if (event.error === 'not-allowed') {
+        setMicFailed('denied')
+      } else if (['network', 'service-not-allowed', 'audio-capture'].includes(event.error)) {
         setMicFailed(true)
       }
       if (listenTimerRef.current) { clearTimeout(listenTimerRef.current); listenTimerRef.current = null }
@@ -246,6 +270,7 @@ export function useVoice({ bcp47, onFinalTranscript, online = true }) {
       }
     }
   }, [])
+  useEffect(() => { startListeningRef.current = startListening }, [startListening])
 
   // ------------------------------------------------------------------- speaking
 
@@ -259,11 +284,37 @@ export function useVoice({ bcp47, onFinalTranscript, online = true }) {
    * voice - the exact symptom of "the UI changed but the voice did not".
    * Passing the language explicitly removes the timing question entirely.
    */
-  const speak = useCallback((text, { then, lang } = {}) => {
+  const speakRef = useRef(null)
+  const speak = useCallback((text, options = {}) => {
+    const { then, lang } = options
     const synth = window.speechSynthesis
     if (!text || !synth) {
       setState('idle')
       then?.()
+      return
+    }
+
+    // Chrome returns an EMPTY voice list until 'voiceschanged' fires. Picking a
+    // voice from that list chose nothing, so the first answer after page load
+    // fell through to recordings or silence. Wait for the list once (loadVoices
+    // gives up after 2.5s), then speak with a properly chosen voice.
+    if (!currentVoices().length && !options.voicesWaited && !voiceListWaited) {
+      try {
+        recognitionRef.current?.abort()
+      } catch {
+        // ignore
+      }
+      wantListenRef.current = false
+      busyRef.current = true
+      setState('speaking')
+      queueIdRef.current += 1
+      const waitId = queueIdRef.current
+      loadVoices().then(() => {
+        // Once per page: a device with no voices at all must not pay 2.5s per answer.
+        voiceListWaited = true
+        if (waitId !== queueIdRef.current) return // stopped or superseded
+        speakRef.current?.(text, { ...options, voicesWaited: true })
+      })
       return
     }
 
@@ -629,6 +680,7 @@ export function useVoice({ bcp47, onFinalTranscript, online = true }) {
 
     speakNext()
   }, [])
+  useEffect(() => { speakRef.current = speak }, [speak])
 
   const stopSpeaking = useCallback(() => {
     // Bumping the queue id abandons any chunks still waiting. Without this,

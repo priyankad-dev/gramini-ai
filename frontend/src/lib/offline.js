@@ -71,6 +71,10 @@ const SWITCH_WORDS = [
   'कर दो', 'करो', 'कर दे', 'में कर', 'बदल', 'चेंज', 'में बात',
   'बोल', 'बोलो', 'बोलिए', 'सांग', 'सांगा', 'मध्ये कर', 'बदला', 'कर',
   'change', 'switch', 'speak', 'talk', 'set to', 'make it',
+  // What the recogniser writes for a switch said in the "other" script: see
+  // the matching note in backend/intent.py.
+  'स्पीक', 'टॉक', 'स्विच',
+  'bolo', 'boliye', 'bolie', 'bola', 'baat', 'badlo', 'badal do', 'sanga',
   'বল', 'বলুন', 'কথা বল', 'কও', 'କୁହ', 'କଥା',
   'మాట్లాడు', 'చెప్పు', 'ಮಾತಾಡು', 'ಹೇಳು', 'பேசு', 'சொல்', 'സംസാരിക്കൂ', 'പറയൂ',
   'બોલો', 'વાત', 'ਬੋਲੋ', 'ਗੱਲ', 'بولو', 'بات',

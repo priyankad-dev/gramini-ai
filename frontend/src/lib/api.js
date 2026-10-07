@@ -78,17 +78,27 @@ export async function lookupScheme({ query, schemeId, category, lang }) {
   }
 }
 
+// Looking at a photo is slower than a text turn: the model reads the image and
+// the backend may retry or fall back to another model. At the ordinary 10 s the
+// request was being aborted while Gemini was still answering, and the user was
+// told there was no internet.
+const VISION_TIMEOUT_MS = 45000
+
 export async function readImage(dataUrl, lang) {
   try {
-    return await post('/api/vision', { image: dataUrl, lang })
-  } catch {
+    return await post('/api/vision', { image: dataUrl, lang }, VISION_TIMEOUT_MS)
+  } catch (err) {
+    if (err?.name === 'AbortError') return { ok: false, reason: 'timeout' }
+    if (String(err?.message).startsWith('HTTP')) {
+      return { ok: false, reason: 'server', detail: err.message }
+    }
     announceReachability(false)
     const message = {
       hi: 'तस्वीर पढ़ने के लिए इंटरनेट चाहिए। अभी इंटरनेट नहीं है।',
       en: 'Reading a photo needs internet. There is no internet right now.',
       mr: 'फोटो वाचण्यासाठी इंटरनेट लागते. सध्या इंटरनेट नाही.',
     }
-    return { ok: false, speech: message[lang] || message.hi, offline: true }
+    return { ok: false, reason: 'offline', speech: message[lang] || message.hi, offline: true }
   }
 }
 

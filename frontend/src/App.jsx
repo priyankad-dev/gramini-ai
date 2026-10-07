@@ -38,6 +38,33 @@ const readStored = (key, fallback) => {
   }
 }
 
+/** Why a photo could not be read, in words the user can act on. */
+function imageFailureText(reason, t) {
+  switch (reason) {
+    case 'bad_key':
+    case 'no_key':
+    case 'no_sdk':
+    case 'forbidden':
+    case 'bad_model':
+      return t.imageErrConfig
+    case 'quota':
+    case 'busy':
+      return t.imageErrBusy
+    case 'timeout':
+      return t.imageErrSlow
+    case 'bad_image':
+      return t.imageErrBadImage
+    case 'empty':
+      return t.imageErrUnclear
+    case 'offline':
+    case 'network':
+    case 'dns':
+      return t.imageNoAi
+    default:
+      return t.imageErrGeneric
+  }
+}
+
 export default function App() {
   const { lang, setLang, bcp47, t } = useLang()
   const online = useOnline()
@@ -330,22 +357,24 @@ export default function App() {
     async (dataUrl) => {
       setCameraBusy(true)
       try {
-          const result = await readImage(dataUrl, langRef.current)
+        const result = await readImage(dataUrl, langRef.current)
+        if (!result.ok) console.warn('[vision] analysis failed:', result.reason || 'unknown')
+        const text = result.ok ? result.speech : imageFailureText(result.reason, t)
         setCameraOpen(false)
         // Task 6: the photo stays in the conversation whether or not the model
         // could read it, so a failed analysis never looks like a failed camera.
         pushMessage({
           role: 'ai',
-          text: result.ok ? result.speech : t.imageNoAi,
+          text,
           image: dataUrl,
           offline: !result.ok,
         })
-        say(result.ok ? result.speech : t.imageNoAi)
+        say(text)
       } finally {
         setCameraBusy(false)
       }
     },
-    [pushMessage, say],
+    [pushMessage, say, t],
   )
 
   // ------------------------------------------------------------ hands-free start
@@ -411,7 +440,7 @@ export default function App() {
       <LanguageNotices voiceAvailable={voice.voiceAvailable} voiceBlocked={voice.voiceBlocked} />
       {voice.micFailed && (
         <div role="status" className="border-b border-saffron/40 bg-saffron-soft px-4 py-2 text-center text-sm font-semibold text-saffron-ink">
-          <span aria-hidden="true">🎤</span> {t.micUnavailable}{' '}
+          <span aria-hidden="true">🎤</span> {voice.micFailed === 'denied' ? t.micDenied : t.micUnavailable}{' '}
           <button type="button" onClick={() => { voice.clearMicFailed(); setMode('chat'); stopHandsFree() }}
             className="underline underline-offset-4">{t.chatMode}</button>
         </div>

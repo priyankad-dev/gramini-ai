@@ -71,6 +71,9 @@ BACKOFF_CAP = 8.0
 
 RETRYABLE = {"busy", "network", "dns", "timeout", "ssl", "server"}
 
+# Largest decoded camera frame accepted for vision.
+MAX_IMAGE_BYTES = 8 * 1024 * 1024
+
 
 def _mask(key: str | None) -> str:
     """Show enough of a key to identify it, never enough to use it."""
@@ -596,25 +599,47 @@ def generate_json(
 def describe_image(
     image_data_url: str, prompt: str, system: str | None = None
 ) -> str | None:
-    """Send one captured camera frame to Gemini."""
-    if not _clients or genai_types is None:
+    """Send one captured camera frame to Gemini.
+
+    The frame arrives as `data:image/jpeg;base64,<payload>`. The prefix is
+    stripped and the decoded bytes go to the model as an inline image part - not
+    as text - with the MIME type taken from the prefix.
+    """
+    if not _clients:
+        if _config_error:
+            _record_failure("no_key", _config_error, None)
+        elif _import_error:
+            _record_failure("no_sdk", _import_error, None)
+        return None
+    if genai_types is None:
         return None
 
-    header, _, payload = image_data_url.partition(",")
-    if not payload:
-        log.warning("image had no base64 payload")
+    header, _, payload = (image_data_url or "").partition(",")
+    # A zero-sized canvas encodes as "data:," - a capture taken before the video
+    # had a frame. Reject it here rather than spend a model call on nothing.
+    match = re.match(r"data:(image/[\w.+-]+);base64$", header.strip())
+    if not match or not payload.strip():
+        log.warning("image is not a base64 image data URL (header=%r)", header[:40])
+        _record_failure("bad_image", "not a base64 image data URL", None)
         return None
-    mime = "image/jpeg"
-    if match := re.search(r"data:([^;]+)", header):
-        mime = match.group(1)
+    mime = match.group(1)
 
     try:
-        image_bytes = base64.b64decode(payload)
+        image_bytes = base64.b64decode(re.sub(r"\s+", "", payload), validate=True)
     except Exception as exc:
         log.warning("bad image payload: %s", exc)
         log.debug("traceback:\n%s", traceback.format_exc())
+        _record_failure("bad_image", f"undecodable base64: {exc}", None)
         return None
 
+    # Gemini caps a whole inline request at 20 MB. The camera downscales to
+    # ~150 KB, so anything near the cap is not a camera frame.
+    if not image_bytes or len(image_bytes) > MAX_IMAGE_BYTES:
+        log.warning("image size %d bytes is outside 1..%d", len(image_bytes), MAX_IMAGE_BYTES)
+        _record_failure("bad_image", f"image is {len(image_bytes)} bytes", None)
+        return None
+
+    log.info("vision: sending %s image, %d KB", mime, len(image_bytes) // 1024)
     part = genai_types.Part.from_bytes(data=image_bytes, mime_type=mime)
     return _generate([prompt, part], system=system)
 
