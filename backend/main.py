@@ -227,28 +227,39 @@ _LANG_CONFIRM = {
     "mr": "ठीक आहे, आता मी मराठीत बोलेन.",
 }
 
+# The camera is a crop doctor. A farmer photographs a sick leaf and HEARS the
+# answer, so the reply is plain spoken sentences: no markdown, no lists, no
+# headings - a voice reading "asterisk asterisk" aloud is worse than useless.
+_VISION_SYSTEM = (
+    "You are a careful crop-health helper for small farmers in rural India with "
+    "low literacy. The user has photographed a crop or plant and will HEAR your "
+    "answer read aloud.\n\n"
+    "Look at the actual image and decide which case applies:\n"
+    "1. A crop or plant is clearly visible. Say, in this order and only as far "
+    "as the photo really shows: what crop or plant it is; what problem is "
+    "visible (disease, pest or insect damage, nutrient deficiency, or leaf, "
+    "fruit or stem damage) - or that it looks healthy; how serious it looks "
+    "(mild, moderate or severe); the likely cause; what to do now; and one way "
+    "to prevent it next time. For any spray or chemical, name the type of "
+    "remedy (for example a copper fungicide or neem oil) but tell them to "
+    "confirm the product and dose at the nearest Krishi Vigyan Kendra or with "
+    "the agriculture officer. Never invent a dose.\n"
+    "2. The photo is blurred, too dark, too far away or too close to judge. Do "
+    "NOT guess a disease. Say the photo is not clear and ask them to take "
+    "another photo of the affected leaf, close up, in daylight.\n"
+    "3. There is no crop or plant in the photo. Say so in one sentence, briefly "
+    "say what you do see, and ask them to photograph the affected plant or leaf.\n\n"
+    "If you are unsure between two problems, say so honestly instead of "
+    "picking one. Use short, simple, everyday words a farmer uses - no "
+    "scientific names unless you also give the common one. Write plain "
+    "sentences only: no markdown, no bullet points, no headings, no emoji. "
+    "Keep it under about 120 words."
+)
+
 _VISION_PROMPT = {
-    "hi": (
-        "यह तस्वीर भारत के किसी गाँव के व्यक्ति ने भेजी है। बहुत आसान हिंदी में, "
-        "तीन-चार छोटे वाक्यों में बताइए कि इसमें क्या दिख रहा है और इससे जुड़ी एक "
-        "काम की सलाह दीजिए। अगर यह दवा है तो बताइए किस काम आती है, पर खुराक मत बताइए और "
-        "डॉक्टर से पूछने को कहिए। अगर यह फसल का पत्ता है तो बताइए कि बीमारी दिख रही है या नहीं। "
-        "अगर यह सरकारी कागज़ है तो बताइए कौन-सा कागज़ है और किस काम आता है।"
-    ),
-    "en": (
-        "This photo was taken by someone in rural India. In very simple English, in "
-        "three or four short sentences, say what is in the picture and give one useful "
-        "tip. If it is a medicine, say what it is generally used for, do not give a "
-        "dose, and tell them to ask a doctor. If it is a crop leaf, say whether a "
-        "disease is visible. If it is a government document, say which document it is "
-        "and what it is used for."
-    ),
-    "mr": (
-        "हा फोटो भारतातील ग्रामीण भागातील व्यक्तीने पाठवला आहे. अगदी सोप्या मराठीत, "
-        "तीन-चार छोट्या वाक्यांत सांगा की यात काय दिसते आणि एक उपयुक्त सल्ला द्या. "
-        "औषध असल्यास ते कशासाठी वापरतात ते सांगा, पण डोस सांगू नका आणि डॉक्टरांना "
-        "विचारायला सांगा. पिकाचे पान असल्यास रोग दिसतो का ते सांगा."
-    ),
+    "hi": "इस फसल या पौधे की तस्वीर जाँचिए। जवाब सिर्फ़ बहुत आसान हिंदी में दीजिए।",
+    "en": "Check this photo of a crop or plant. Answer only in very simple English.",
+    "mr": "या पिकाचा किंवा झाडाचा फोटो तपासा. उत्तर फक्त अगदी सोप्या मराठीत द्या.",
 }
 
 _VISION_FAIL = {
@@ -280,9 +291,8 @@ def _vision_prompt(lang: str) -> str:
     if languages.is_tier1(lang):
         return _VISION_PROMPT[lang]
     return (
-        _VISION_PROMPT["en"]
-        + f"\n\nWrite your answer ONLY in {languages.name_of(lang)}, in that "
-        f"language's own script."
+        "Check this photo of a crop or plant. Write your answer ONLY in very "
+        f"simple {languages.name_of(lang)}, in that language's own script."
     )
 
 
@@ -573,9 +583,9 @@ def turn(req: TurnRequest) -> dict:
                 "cache_age_seconds": result.get("cache_age_seconds")}
 
     if parsed["intent"] == "CAMERA_OPEN":
-        prompt = {"hi": "कैमरा खोल रहा हूँ। जो दिखाना है, सामने रखिए।",
-                  "en": "Opening the camera. Hold up what you want to show me.",
-                  "mr": "कॅमेरा उघडत आहे. जे दाखवायचे आहे ते समोर धरा."}
+        prompt = {"hi": "कैमरा खोल रहा हूँ। बीमार पत्ते या पौधे को पास से दिखाइए और फोटो लीजिए।",
+                  "en": "Opening the camera. Show me the affected leaf or plant up close and take a photo.",
+                  "mr": "कॅमेरा उघडत आहे. खराब पान किंवा झाड जवळून दाखवा आणि फोटो काढा."}
         return {**base, "action": "CAMERA_OPEN",
                 "speech": _say(prompt, lang, "cameraOpening")}
 
@@ -607,7 +617,7 @@ def vision(req: VisionRequest) -> dict:
     if req.hint:
         prompt = f"{prompt}\n\n{req.hint}"
 
-    described = gemini_client.describe_image(req.image, prompt)
+    described = gemini_client.describe_image(req.image, prompt, system=_VISION_SYSTEM)
     if described:
         return {"ok": True, "lang": lang, "speech": described, "ai_available": True}
 

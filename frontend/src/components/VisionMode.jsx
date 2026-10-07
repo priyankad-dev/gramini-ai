@@ -81,9 +81,18 @@ export function VisionMode({ open, onClose, onCapture, busy }) {
   const [error, setError] = useState(null)
   // Bumped by "Try again" to request the camera once more.
   const [attempt, setAttempt] = useState(0)
-  // The captured frame, held for review until the user asks for analysis.
+  // The frame being analysed, shown frozen while the answer is on its way.
   const [shot, setShot] = useState(null)
   const [notice, setNotice] = useState(null)
+  // Set synchronously on capture. `busy` comes from the parent and only lands
+  // after a re-render, so two quick taps would otherwise both get through and
+  // send the same photo to Gemini twice.
+  const sendingRef = useRef(false)
+
+  // Analysis finished (or failed): unlock for the next photo.
+  useEffect(() => {
+    if (!busy) sendingRef.current = false
+  }, [busy])
 
   const stop = useCallback(() => {
     streamRef.current?.getTracks().forEach((track) => track.stop())
@@ -95,6 +104,7 @@ export function VisionMode({ open, onClose, onCapture, busy }) {
     setShot(null)
     setNotice(null)
     setError(null)
+    sendingRef.current = false
     if (!open) {
       stop()
       return undefined
@@ -136,6 +146,7 @@ export function VisionMode({ open, onClose, onCapture, busy }) {
   }, [open, attempt, stop])
 
   const capture = () => {
+    if (sendingRef.current || busy) return
     const video = videoRef.current
     if (!video || !video.videoWidth) {
       setNotice(t.cameraNotReady)
@@ -157,17 +168,13 @@ export function VisionMode({ open, onClose, onCapture, busy }) {
       setNotice(t.imageErrBadImage)
       return
     }
+    // No "analyse this?" step: for a low-literacy user a second button is a
+    // second chance to get lost. The photo goes straight to the model, exactly
+    // once, and the frozen frame shows what is being checked.
+    sendingRef.current = true
     setNotice(null)
     setShot(dataUrl)
-  }
-
-  const analyze = () => {
-    if (shot && !busy) onCapture(shot)
-  }
-
-  const retake = () => {
-    setShot(null)
-    setNotice(null)
+    onCapture(dataUrl)
   }
 
   if (!open) return null
@@ -211,7 +218,7 @@ export function VisionMode({ open, onClose, onCapture, busy }) {
           </div>
         ) : (
           <>
-            {/* Kept mounted under the preview so "Retake" resumes instantly. */}
+            {/* Kept mounted under the frozen frame so the stream stays live. */}
             <video
               ref={videoRef}
               autoPlay
@@ -231,42 +238,19 @@ export function VisionMode({ open, onClose, onCapture, busy }) {
       </div>
 
       <div className="mx-auto w-full max-w-thread p-4">
-        {(busy || notice) && (
-          <p aria-live="polite" className="mb-2.5 text-center text-sm text-muted">
-            {busy ? t.cameraReading : notice}
-          </p>
-        )}
-        {shot ? (
-          <div className="flex gap-2.5">
-            <button
-              type="button"
-              onClick={retake}
-              disabled={busy}
-              className="flex min-h-tap flex-1 items-center justify-center gap-2 rounded-composer border border-line py-3 text-base font-semibold text-ink transition-colors hover:bg-hover disabled:opacity-50"
-            >
-              <span aria-hidden="true">↺</span> {t.cameraRetake}
-            </button>
-            <button
-              type="button"
-              onClick={analyze}
-              disabled={busy}
-              aria-busy={busy}
-              className="flex min-h-tap flex-[2] items-center justify-center gap-2 rounded-composer bg-ink py-3 text-base font-semibold text-surface transition-opacity hover:opacity-90 disabled:opacity-50"
-            >
-              <span aria-hidden="true">{busy ? '⏳' : '🔍'}</span>
-              {busy ? t.cameraReading : t.cameraAnalyze}
-            </button>
-          </div>
-        ) : (
-          <button
-            type="button"
-            onClick={capture}
-            disabled={Boolean(error) || busy}
-            className="flex min-h-tap w-full items-center justify-center gap-2 rounded-composer bg-ink py-3 text-base font-semibold text-surface transition-opacity hover:opacity-90 disabled:opacity-50"
-          >
-            <span aria-hidden="true">📸</span> {t.cameraCapture}
-          </button>
-        )}
+        <p aria-live="polite" className={busy || notice ? 'mb-2.5 text-center text-sm text-muted' : 'sr-only'}>
+          {busy ? t.cameraReading : notice}
+        </p>
+        <button
+          type="button"
+          onClick={capture}
+          disabled={Boolean(error) || busy}
+          aria-busy={busy}
+          className="flex min-h-tap w-full items-center justify-center gap-2 rounded-composer bg-ink py-3 text-base font-semibold text-surface transition-opacity hover:opacity-90 disabled:opacity-50"
+        >
+          <span aria-hidden="true">{busy ? '⏳' : '📸'}</span>
+          {busy ? t.cameraReading : t.cameraCapture}
+        </button>
       </div>
     </div>
   )
