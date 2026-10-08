@@ -35,11 +35,10 @@ import logging
 import threading
 import time
 import traceback
-import urllib.error
-import urllib.parse
-import urllib.request
 from pathlib import Path
 from typing import Any
+
+import httpx
 
 log = logging.getLogger("gramini.weather")
 
@@ -377,19 +376,37 @@ def normalise(name: str) -> str:
 # ------------------------------------------------------------------ http helper
 
 
+# The last provider failure, surfaced in /api/health. On Render every fetch
+# was failing silently - the production cache was two months old - and with no
+# access to the server log there was no way to see why.
+_last_error: dict[str, Any] | None = None
+
+_HEADERS = {"User-Agent": "gramini-ai/1.0 (weather for rural India)"}
+
+
 def _get(url: str, params: dict[str, Any]) -> dict[str, Any] | None:
-    query = urllib.parse.urlencode(params)
+    """GET a JSON endpoint.
+
+    httpx rather than urllib: it verifies TLS against certifi's bundle instead
+    of the host's system store, which is the same path Gemini already uses
+    successfully on Render, and it sends a named User-Agent instead of
+    "Python-urllib", which some providers refuse from datacenter IPs.
+    """
+    global _last_error
     try:
-        with urllib.request.urlopen(f"{url}?{query}", timeout=TIMEOUT) as response:
-            return json.loads(response.read().decode("utf-8"))
-    except urllib.error.HTTPError as exc:
-        # 429 rate limit, 5xx provider error. Logged with the status so the
-        # cause is visible; the user hears only "not available right now".
-        log.warning("  weather provider returned HTTP %s for %s", exc.code, url)
-        return None
+        response = httpx.get(url, params=params, headers=_HEADERS, timeout=TIMEOUT)
+        if response.status_code != 200:
+            # 429 rate limit, 5xx provider error. The user hears only
+            # "not available right now"; the status goes to the log and health.
+            log.warning("  weather provider returned HTTP %s for %s", response.status_code, url)
+            _last_error = {"error": f"HTTP {response.status_code}", "url": url, "at": time.time()}
+            return None
+        _last_error = None
+        return response.json()
     except Exception as exc:
         log.warning("  request failed (%s): %s", type(exc).__name__, exc)
         log.debug("traceback:\n%s", traceback.format_exc())
+        _last_error = {"error": f"{type(exc).__name__}: {str(exc)[:200]}", "url": url, "at": time.time()}
         return None
 
 
@@ -575,6 +592,10 @@ def cache_summary() -> dict[str, Any]:
         cache = _load_cache()
     now = time.time()
     return {
+        "last_error": (
+            {**_last_error, "age_seconds": round(now - _last_error["at"])}
+            if _last_error else None
+        ),
         "entries": len(cache),
         "places": [entry.get("location") for entry in cache.values()][:12],
         "freshest_seconds": (
