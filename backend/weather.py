@@ -30,6 +30,7 @@ rather than to silence.
 from __future__ import annotations
 
 import json
+import os
 import re
 import logging
 import threading
@@ -45,6 +46,18 @@ log = logging.getLogger("gramini.weather")
 GEOCODE_URL = "https://geocoding-api.open-meteo.com/v1/search"
 FORECAST_URL = "https://api.open-meteo.com/v1/forecast"
 TIMEOUT = 8
+
+# Backup forecast provider, used only when Open-Meteo fails.
+#
+# Open-Meteo's free tier is limited PER IP ADDRESS, and Render's free plan
+# sends every app's traffic out through a few shared IPs. Those IPs are over
+# the limit before this app makes a single call, so production got HTTP 429 on
+# every forecast. WeatherAPI.com meters by API KEY instead, so its quota is
+# this app's alone. The key lives only in the backend environment.
+WEATHERAPI_URL = "https://api.weatherapi.com/v1/forecast.json"
+# After a 429, skip Open-Meteo for this long and go straight to the backup,
+# rather than paying a refused request on every question.
+RATE_LIMIT_BACKOFF = 10 * 60
 
 CACHE_FILE = Path(__file__).parent / "data" / "weather_cache.json"
 CACHE_TTL = 10 * 60          # 10 minutes: "right now" must mean now, not half an hour ago
@@ -382,6 +395,17 @@ def normalise(name: str) -> str:
 _last_error: dict[str, Any] | None = None
 
 _HEADERS = {"User-Agent": "gramini-ai/1.0 (weather for rural India)"}
+_openmeteo_blocked_until = 0.0
+
+
+def _weatherapi_key() -> str | None:
+    return (os.getenv("WEATHER_API_KEY") or "").strip().strip("\"'") or None
+
+
+def _scrub(text: str) -> str:
+    """Never let the API key reach a log line or the health endpoint."""
+    key = _weatherapi_key()
+    return text.replace(key, "***") if key else text
 
 
 def _get(url: str, params: dict[str, Any]) -> dict[str, Any] | None:
@@ -400,13 +424,16 @@ def _get(url: str, params: dict[str, Any]) -> dict[str, Any] | None:
             # "not available right now"; the status goes to the log and health.
             log.warning("  weather provider returned HTTP %s for %s", response.status_code, url)
             _last_error = {"error": f"HTTP {response.status_code}", "url": url, "at": time.time()}
+            if response.status_code == 429 and url == FORECAST_URL:
+                global _openmeteo_blocked_until
+                _openmeteo_blocked_until = time.time() + RATE_LIMIT_BACKOFF
             return None
         _last_error = None
         return response.json()
     except Exception as exc:
-        log.warning("  request failed (%s): %s", type(exc).__name__, exc)
-        log.debug("traceback:\n%s", traceback.format_exc())
-        _last_error = {"error": f"{type(exc).__name__}: {str(exc)[:200]}", "url": url, "at": time.time()}
+        detail = _scrub(str(exc))[:200]
+        log.warning("  request failed (%s): %s", type(exc).__name__, detail)
+        _last_error = {"error": f"{type(exc).__name__}: {detail}", "url": url, "at": time.time()}
         return None
 
 
@@ -592,6 +619,7 @@ def cache_summary() -> dict[str, Any]:
         cache = _load_cache()
     now = time.time()
     return {
+        "backup_provider": "WeatherAPI.com" if _weatherapi_key() else None,
         "last_error": (
             {**_last_error, "age_seconds": round(now - _last_error["at"])}
             if _last_error else None
@@ -641,6 +669,84 @@ _HERE_NAME = {"hi": "आपके इलाके", "en": "your area", "mr": "�
 
 
 def fetch(place: dict[str, Any]) -> dict[str, Any] | None:
+    """Live forecast: Open-Meteo, then WeatherAPI.com if a key is configured."""
+    report = None
+    if time.time() >= _openmeteo_blocked_until or not _weatherapi_key():
+        report = _fetch_openmeteo(place)
+    if report is None and _weatherapi_key():
+        log.info("  Open-Meteo unavailable - using WeatherAPI.com")
+        report = _fetch_weatherapi(place)
+    return report
+
+
+# WeatherAPI.com condition codes -> the WMO codes `_WMO` already speaks, so
+# both providers produce the same words in every language.
+_WAPI_TO_WMO = {
+    1000: 0, 1003: 2, 1006: 3, 1009: 3,
+    1030: 45, 1135: 45, 1147: 48,
+    1063: 61, 1180: 61, 1183: 61, 1186: 63, 1189: 63, 1192: 65, 1195: 65,
+    1150: 51, 1153: 51, 1168: 55, 1171: 55, 1198: 61, 1201: 65,
+    1240: 80, 1243: 81, 1246: 82,
+    1087: 95, 1273: 95, 1276: 95, 1279: 95, 1282: 95,
+    1066: 71, 1114: 71, 1117: 71, 1210: 71, 1213: 71, 1216: 71, 1219: 71,
+    1222: 71, 1225: 71, 1255: 71, 1258: 71,
+}
+
+
+def _fetch_weatherapi(place: dict[str, Any]) -> dict[str, Any] | None:
+    key = _weatherapi_key()
+    if not key:
+        return None
+    data = _get(WEATHERAPI_URL, {
+        "key": key,
+        "q": f"{place['lat']},{place['lon']}",
+        "days": 3,
+        "aqi": "no",
+        "alerts": "no",
+    })
+    if not data or "current" not in data:
+        return None
+
+    def rounded(value: Any) -> int | None:
+        return round(value) if isinstance(value, (int, float)) else None
+
+    def wmo(condition: Any) -> int:
+        code = (condition or {}).get("code")
+        return _WAPI_TO_WMO.get(code, 3)
+
+    current = data["current"]
+    days = []
+    for entry in (data.get("forecast") or {}).get("forecastday") or []:
+        day = entry.get("day") or {}
+        days.append({
+            "date": entry.get("date"),
+            "max": rounded(day.get("maxtemp_c")),
+            "min": rounded(day.get("mintemp_c")),
+            "rain": day.get("daily_chance_of_rain"),
+            "code": wmo(day.get("condition")),
+            "wind_max": rounded(day.get("maxwind_kph")),
+        })
+
+    return {
+        "v": REPORT_VERSION,
+        "place": place.get("name"),
+        "admin": place.get("admin"),
+        "observed_at": current.get("last_updated"),
+        "temp_now": rounded(current.get("temp_c")),
+        "feels_like": rounded(current.get("feelslike_c")),
+        "humidity": current.get("humidity"),
+        "wind_now": rounded(current.get("wind_kph")),
+        "code": wmo(current.get("condition")),
+        "today_max": days[0]["max"] if days else None,
+        "today_min": days[0]["min"] if days else None,
+        "rain_today": days[0]["rain"] if days else None,
+        "rain_tomorrow": days[1]["rain"] if len(days) > 1 else None,
+        "days": days,
+        "source": "WeatherAPI.com",
+    }
+
+
+def _fetch_openmeteo(place: dict[str, Any]) -> dict[str, Any] | None:
     data = _get(FORECAST_URL, {
         "latitude": place["lat"],
         "longitude": place["lon"],

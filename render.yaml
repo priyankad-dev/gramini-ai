@@ -30,6 +30,10 @@ services:
         sync: false
       - key: GEMINI_API_KEY_BACKUP
         sync: false
+      # Backup weather provider. Open-Meteo rate-limits Render's shared IPs
+      # (HTTP 429), so production forecasts need this key.
+      - key: WEATHER_API_KEY
+        sync: false
 
       # ---- Non-secret configuration ----
       - key: GEMINI_MODEL
