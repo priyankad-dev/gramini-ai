@@ -333,6 +333,85 @@ _STATE_CODES = {
 }
 
 
+# State -> its capital, for "weather in Kerala". A geocoder treats a state name
+# as a town name: "Kerala" found Keralāndān in Tamil Nadu, "Bihar" a village in
+# Madhya Pradesh. Built in, so a state question needs no geocoding at all.
+#   canonical name: (capital, lat, lon, aliases)
+_STATE_CAPITALS: dict[str, tuple[str, float, float, tuple[str, ...]]] = {
+    "Andhra Pradesh": ("Amaravati", 16.5150, 80.5160, ("andhra pradesh", "andhra", "आंध्र प्रदेश", "आंध्र")),
+    "Arunachal Pradesh": ("Itanagar", 27.0844, 93.6053, ("arunachal pradesh", "arunachal", "अरुणाचल")),
+    "Assam": ("Guwahati", 26.1445, 91.7362, ("assam", "असम", "आसाम")),
+    "Bihar": ("Patna", 25.5941, 85.1376, ("bihar", "बिहार")),
+    "Chhattisgarh": ("Raipur", 21.2514, 81.6296, ("chhattisgarh", "chattisgarh", "छत्तीसगढ़", "छत्तीसगढ")),
+    "Goa": ("Panaji", 15.4909, 73.8278, ("goa", "गोवा")),
+    "Gujarat": ("Gandhinagar", 23.2156, 72.6369, ("gujarat", "गुजरात")),
+    "Haryana": ("Chandigarh", 30.7333, 76.7794, ("haryana", "हरियाणा", "हरयाणा")),
+    "Himachal Pradesh": ("Shimla", 31.1048, 77.1734, ("himachal pradesh", "himachal", "हिमाचल")),
+    "Jharkhand": ("Ranchi", 23.3441, 85.3096, ("jharkhand", "झारखंड", "झारखण्ड")),
+    "Karnataka": ("Bengaluru", 12.9716, 77.5946, ("karnataka", "कर्नाटक")),
+    "Kerala": ("Thiruvananthapuram", 8.5241, 76.9366, ("kerala", "केरल", "केरळ")),
+    "Madhya Pradesh": ("Bhopal", 23.2599, 77.4126, ("madhya pradesh", "मध्य प्रदेश", "मध्यप्रदेश")),
+    "Maharashtra": ("Mumbai", 19.0760, 72.8777, ("maharashtra", "महाराष्ट्र")),
+    "Manipur": ("Imphal", 24.8170, 93.9368, ("manipur", "मणिपुर", "मणिपूर")),
+    "Meghalaya": ("Shillong", 25.5788, 91.8933, ("meghalaya", "मेघालय")),
+    "Mizoram": ("Aizawl", 23.7271, 92.7176, ("mizoram", "मिजोरम", "मिज़ोरम")),
+    "Nagaland": ("Kohima", 25.6751, 94.1086, ("nagaland", "नागालैंड", "नागालँड")),
+    "Odisha": ("Bhubaneswar", 20.2961, 85.8245, ("odisha", "orissa", "ओडिशा", "ओडिसा", "उड़ीसा")),
+    "Punjab": ("Chandigarh", 30.7333, 76.7794, ("punjab", "पंजाब")),
+    "Rajasthan": ("Jaipur", 26.9124, 75.7873, ("rajasthan", "राजस्थान")),
+    "Sikkim": ("Gangtok", 27.3389, 88.6065, ("sikkim", "सिक्किम")),
+    "Tamil Nadu": ("Chennai", 13.0827, 80.2707, ("tamil nadu", "tamilnadu", "तमिलनाडु", "तमिल नाडु")),
+    "Telangana": ("Hyderabad", 17.3850, 78.4867, ("telangana", "तेलंगाना", "तेलंगणा")),
+    "Tripura": ("Agartala", 23.8315, 91.2868, ("tripura", "त्रिपुरा")),
+    "Uttar Pradesh": ("Lucknow", 26.8467, 80.9462, ("uttar pradesh", "उत्तर प्रदेश", "उत्तरप्रदेश")),
+    "Uttarakhand": ("Dehradun", 30.3165, 78.0322, ("uttarakhand", "uttaranchal", "उत्तराखंड", "उत्तराखण्ड")),
+    "West Bengal": ("Kolkata", 22.5726, 88.3639, ("west bengal", "bengal", "पश्चिम बंगाल", "बंगाल")),
+    "Delhi": ("New Delhi", 28.6139, 77.2090, ("delhi", "दिल्ली")),
+    "Jammu and Kashmir": ("Srinagar", 34.0837, 74.7973, ("jammu and kashmir", "jammu kashmir", "kashmir", "जम्मू कश्मीर", "कश्मीर")),
+    "Ladakh": ("Leh", 34.1526, 77.5771, ("ladakh", "लद्दाख")),
+    "Puducherry": ("Puducherry", 11.9416, 79.8083, ("puducherry", "pondicherry", "पुडुचेरी")),
+    "Chandigarh": ("Chandigarh", 30.7333, 76.7794, ("chandigarh", "चंडीगढ़")),
+    "Andaman and Nicobar": ("Port Blair", 11.6234, 92.7265, ("andaman", "अंडमान")),
+    "Lakshadweep": ("Kavaratti", 10.5626, 72.6369, ("lakshadweep", "लक्षद्वीप")),
+}
+
+
+def mentioned_state(text: str) -> str | None:
+    """The Indian state named in a sentence, as its canonical English name.
+
+    Longest alias wins, so "west bengal" is not read as plain "bengal" and
+    "jammu and kashmir" is matched before "kashmir".
+    """
+    lowered = (text or "").lower()
+    best: tuple[int, str] | None = None
+    for state, (_, _, _, aliases) in _STATE_CAPITALS.items():
+        for alias in aliases:
+            if alias.isascii():
+                hit = re.search(rf"\b{re.escape(alias)}\b", lowered) is not None
+            else:
+                hit = alias in lowered
+            if hit and (best is None or len(alias) > best[0]):
+                best = (len(alias), state)
+    return best[1] if best else None
+
+
+def state_capital(state: str) -> dict[str, Any] | None:
+    entry = _STATE_CAPITALS.get(state)
+    if not entry:
+        return None
+    capital, lat, lon, _ = entry
+    return {"name": capital, "lat": lat, "lon": lon, "admin": state, "country": "India"}
+
+
+def _in_state(admin: Any, state: str | None) -> bool:
+    """Does a geocoder's region string belong to the named state?"""
+    if not state or not admin:
+        return False
+    region = str(admin).lower()
+    aliases = _STATE_CAPITALS.get(state, ("", 0, 0, ()))[3]
+    return state.lower() in region or any(a.isascii() and a in region for a in aliases)
+
+
 def _clean_token(token: str) -> str:
     return token.strip(",.?!।'\"()").strip()
 
@@ -395,7 +474,15 @@ def normalise(name: str) -> str:
 _last_error: dict[str, Any] | None = None
 
 _HEADERS = {"User-Agent": "gramini-ai/1.0 (weather for rural India)"}
-_openmeteo_blocked_until = 0.0
+# Open-Meteo URL -> time it may be tried again after a 429. The geocoder and
+# the forecast are separate hosts, so they are throttled separately.
+_blocked_until: dict[str, float] = {}
+
+WEATHERAPI_SEARCH_URL = "https://api.weatherapi.com/v1/search.json"
+
+
+def _blocked(url: str) -> bool:
+    return time.time() < _blocked_until.get(url, 0.0)
 
 
 def _weatherapi_key() -> str | None:
@@ -424,9 +511,8 @@ def _get(url: str, params: dict[str, Any]) -> dict[str, Any] | None:
             # "not available right now"; the status goes to the log and health.
             log.warning("  weather provider returned HTTP %s for %s", response.status_code, url)
             _last_error = {"error": f"HTTP {response.status_code}", "url": url, "at": time.time()}
-            if response.status_code == 429 and url == FORECAST_URL:
-                global _openmeteo_blocked_until
-                _openmeteo_blocked_until = time.time() + RATE_LIMIT_BACKOFF
+            if response.status_code == 429 and url in (FORECAST_URL, GEOCODE_URL):
+                _blocked_until[url] = time.time() + RATE_LIMIT_BACKOFF
             return None
         _last_error = None
         return response.json()
@@ -440,23 +526,64 @@ def _get(url: str, params: dict[str, Any]) -> dict[str, Any] | None:
 # ---------------------------------------------------------------------- geocode
 
 
-def _lookup(name: str) -> dict[str, Any] | None:
+def _pick(hits: list[dict[str, Any]], state: str | None) -> dict[str, Any] | None:
+    """First hit in the named state, else the first hit (largest population).
+
+    Village names repeat across India - there are Rampurs in a dozen states -
+    so "Rampur Uttar Pradesh" must not return the Rampur in Himachal.
+    """
+    if not hits:
+        return None
+    for hit in hits:
+        if _in_state(hit.get("admin"), state):
+            return hit
+    return hits[0]
+
+
+def _lookup_openmeteo(name: str, state: str | None) -> list[dict[str, Any]] | None:
     # India only. Unrestricted, a stray word found a town on another
     # continent and the farmer heard its forecast as if it were theirs.
     data = _get(GEOCODE_URL, {
-        "name": name, "count": 1, "language": "en", "format": "json", "countryCode": "IN",
+        "name": name, "count": 10 if state else 1, "language": "en", "format": "json",
+        "countryCode": "IN",
     })
-    results = (data or {}).get("results") or []
-    if not results:
+    if data is None:
         return None
-    hit = results[0]
-    return {
-        "name": hit.get("name"),
-        "lat": hit.get("latitude"),
-        "lon": hit.get("longitude"),
-        "admin": hit.get("admin1"),
-        "country": hit.get("country"),
-    }
+    return [
+        {"name": h.get("name"), "lat": h.get("latitude"), "lon": h.get("longitude"),
+         "admin": h.get("admin1"), "country": h.get("country")}
+        for h in data.get("results") or []
+    ]
+
+
+def _lookup_weatherapi(name: str) -> list[dict[str, Any]] | None:
+    key = _weatherapi_key()
+    if not key:
+        return None
+    data = _get(WEATHERAPI_SEARCH_URL, {"key": key, "q": f"{name}, India"})
+    if not isinstance(data, list):
+        return None
+    return [
+        {"name": h.get("name"), "lat": h.get("lat"), "lon": h.get("lon"),
+         "admin": h.get("region"), "country": h.get("country")}
+        for h in data
+        if str(h.get("country", "")).lower() == "india"
+    ]
+
+
+def _lookup(name: str, state: str | None = None) -> tuple[dict[str, Any] | None, bool]:
+    """(place, reached) - `reached` is False when no geocoder answered at all.
+
+    Open-Meteo first, WeatherAPI.com when Open-Meteo is rate-limited or down:
+    on Render's shared IPs the geocoder 429s just like the forecast does, and
+    without this every named town failed before a forecast was ever asked for.
+    """
+    hits = None if _blocked(GEOCODE_URL) else _lookup_openmeteo(name, state)
+    if hits is None:
+        hits = _lookup_weatherapi(name)
+    if hits is None:
+        return None, False
+    return _pick(hits, state), True
 
 
 def _candidates(raw: str) -> list[str]:
@@ -498,16 +625,25 @@ def _candidates(raw: str) -> list[str]:
     return ordered
 
 
-def find_place(name: str) -> dict[str, Any] | None:
-    """Resolve a spoken place name to coordinates. Returns None if unfound."""
+def find_place(name: str, state: str | None = None) -> dict[str, Any] | None:
+    """Resolve a spoken place name to coordinates. Returns None if unfound.
+
+    `state`, when the user named one, picks between villages that share a name.
+    """
     if not name:
         return None
 
     ladder = _candidates(name)
-    log.info("  geocoding %r -> trying %s", name, ladder)
+    log.info("  geocoding %r (state=%s) -> trying %s", name, state, ladder)
 
     for step, candidate in enumerate(ladder, start=1):
-        found = _lookup(candidate)
+        found, reached = _lookup(candidate, state)
+        if not reached:
+            # Every geocoder is unreachable. The remaining spellings would each
+            # wait out the same timeout - a minute of silence for the farmer -
+            # and then fail anyway. Stop, and let the caller try the cache.
+            log.warning("  geocoder unreachable - giving up on %r", name)
+            return None
         if found:
             log.info(
                 "  resolved on step %d (%r) -> %s, %s (%.4f, %.4f)",
@@ -671,7 +807,7 @@ _HERE_NAME = {"hi": "आपके इलाके", "en": "your area", "mr": "�
 def fetch(place: dict[str, Any]) -> dict[str, Any] | None:
     """Live forecast: Open-Meteo, then WeatherAPI.com if a key is configured."""
     report = None
-    if time.time() >= _openmeteo_blocked_until or not _weatherapi_key():
+    if not _blocked(FORECAST_URL) or not _weatherapi_key():
         report = _fetch_openmeteo(place)
     if report is None and _weatherapi_key():
         log.info("  Open-Meteo unavailable - using WeatherAPI.com")
@@ -962,6 +1098,7 @@ def answer(
     coords: tuple[float, float] | None = None,
     day: str = "today",
     farm: str | None = None,
+    state: str | None = None,
 ) -> dict[str, Any] | None:
     """Full weather answer for a spoken place, or for the phone's location.
 
@@ -975,14 +1112,22 @@ def answer(
     rain, when the forecast was for Pune, is exactly the confident wrong answer
     this project exists to avoid.
     """
-    log.info("weather request: place=%r coords=%s lang=%s day=%s farm=%s",
-             place_name, bool(coords), lang, day, farm)
+    state = state or mentioned_state(place_name or "")
+    # "Kerala", "दिल्ली": nothing left once the state is set aside, so the
+    # question is about the state itself.
+    if place_name and state and not extract_place(place_name):
+        place_name = None
+    log.info("weather request: place=%r state=%s coords=%s lang=%s day=%s farm=%s",
+             place_name, state, bool(coords), lang, day, farm)
 
-    if place_name:
+    if not place_name and state:
+        place = state_capital(state)
+        log.info("  state only - using its capital, %s", place["name"])
+    elif place_name:
         normalised = normalise(place_name)
         if normalised != place_name:
             log.info("  normalised %r -> %r", place_name, normalised)
-        place = find_place(place_name)
+        place = find_place(place_name, state)
         if not place:
             # Geocoding needs the network. Before giving up, check whether this
             # place was answered earlier - an offline user asking about their own

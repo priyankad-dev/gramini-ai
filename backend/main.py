@@ -586,20 +586,24 @@ def turn(req: TurnRequest) -> dict:
         # The model is not asked what the weather is - it does not know, and a
         # confident wrong forecast costs a farmer a day's work.
         place = _place_from(text)
+        # "Rampur, Uttar Pradesh" picks the right Rampur; "weather in Bihar"
+        # alone is answered for the state capital.
+        state = weather.mentioned_state(text)
         coords = (req.lat, req.lon) if req.lat is not None and req.lon is not None else None
 
         # No town named ("आज का मौसम कैसा है?", "near me"): the user means
         # where they are. This used to answer for Pune regardless, which is a
         # confident forecast for somewhere the farmer is not. Ask the phone.
-        if not place and not coords:
+        if not place and not state and not coords:
             return {**base, "action": "REQUEST_LOCATION",
                     "speech": _say(_ASK_LOCATION, lang, "weatherAskLocation")}
 
         result = weather.answer(
             place, lang,
-            coords=None if place else coords,
+            coords=None if place or state else coords,
             day=weather.which_day(text),
             farm=weather.farm_question(text),
+            state=state,
         )
         if not result:
             return {**base, "speech": _say(weather._NO_DATA, lang, "weatherFail")}
