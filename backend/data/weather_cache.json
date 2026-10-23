@@ -1,19 +1,49 @@
 {
   "18.52,73.86": {
-    "location": "Pune",
-    "latitude": 18.5204,
-    "longitude": 73.8567,
-    "fetched_at": 1786153260.1169684,
+    "location": null,
+    "latitude": 18.52,
+    "longitude": 73.86,
+    "fetched_at": 1792748440.234133,
     "weather_data": {
-      "place": "Pune",
+      "v": 2,
+      "place": null,
       "admin": null,
-      "temp_now": 23,
-      "humidity": 91,
-      "code": 3,
-      "today_max": 28,
-      "today_min": 23,
-      "rain_today": 99,
-      "rain_tomorrow": 86,
+      "observed_at": "2026-10-23T15:00",
+      "temp_now": 33,
+      "feels_like": 33,
+      "humidity": 32,
+      "wind_now": 9,
+      "code": 2,
+      "today_max": 34,
+      "today_min": 24,
+      "rain_today": 47,
+      "rain_tomorrow": 22,
+      "days": [
+        {
+          "date": "2026-10-23",
+          "max": 34,
+          "min": 24,
+          "rain": 47,
+          "code": 3,
+          "wind_max": 10
+        },
+        {
+          "date": "2026-10-24",
+          "max": 33,
+          "min": 23,
+          "rain": 22,
+          "code": 51,
+          "wind_max": 9
+        },
+        {
+          "date": "2026-10-25",
+          "max": 33,
+          "min": 22,
+          "rain": 10,
+          "code": 51,
+          "wind_max": 13
+        }
+      ],
       "source": "Open-Meteo"
     }
   },
@@ -21,17 +51,47 @@
     "location": "Beed",
     "latitude": 18.98921,
     "longitude": 75.75634,
-    "fetched_at": 1786153260.7364056,
+    "fetched_at": 1791397981.7170682,
     "weather_data": {
+      "v": 2,
       "place": "Beed",
       "admin": null,
-      "temp_now": 24,
-      "humidity": 84,
-      "code": 3,
-      "today_max": 30,
+      "observed_at": "2026-10-08T00:00",
+      "temp_now": 26,
+      "feels_like": 30,
+      "humidity": 63,
+      "wind_now": 0,
+      "code": 0,
+      "today_max": 32,
       "today_min": 23,
-      "rain_today": 83,
-      "rain_tomorrow": 49,
+      "rain_today": 87,
+      "rain_tomorrow": 20,
+      "days": [
+        {
+          "date": "2026-10-07",
+          "max": 32,
+          "min": 23,
+          "rain": 87,
+          "code": 51,
+          "wind_max": 12
+        },
+        {
+          "date": "2026-10-08",
+          "max": 33,
+          "min": 23,
+          "rain": 20,
+          "code": 51,
+          "wind_max": 10
+        },
+        {
+          "date": "2026-10-09",
+          "max": 34,
+          "min": 23,
+          "rain": 0,
+          "code": 0,
+          "wind_max": 11
+        }
+      ],
       "source": "Open-Meteo"
     }
   },
@@ -39,17 +99,47 @@
     "location": "Vrindāvan",
     "latitude": 27.58105,
     "longitude": 77.69662,
-    "fetched_at": 1786153261.3215072,
+    "fetched_at": 1791397982.7767732,
     "weather_data": {
+      "v": 2,
       "place": "Vrindāvan",
       "admin": null,
-      "temp_now": 27,
-      "humidity": 94,
-      "code": 1,
-      "today_max": 32,
-      "today_min": 26,
-      "rain_today": 94,
-      "rain_tomorrow": 84,
+      "observed_at": "2026-10-08T00:00",
+      "temp_now": 26,
+      "feels_like": 29,
+      "humidity": 74,
+      "wind_now": 10,
+      "code": 0,
+      "today_max": 35,
+      "today_min": 25,
+      "rain_today": 16,
+      "rain_tomorrow": 10,
+      "days": [
+        {
+          "date": "2026-10-07",
+          "max": 35,
+          "min": 25,
+          "rain": 16,
+          "code": 1,
+          "wind_max": 11
+        },
+        {
+          "date": "2026-10-08",
+          "max": 34,
+          "min": 24,
+          "rain": 10,
+          "code": 1,
+          "wind_max": 13
+        },
+        {
+          "date": "2026-10-09",
+          "max": 35,
+          "min": 24,
+          "rain": 18,
+          "code": 1,
+          "wind_max": 18
+        }
+      ],
       "source": "Open-Meteo"
     }
   },
@@ -57,17 +147,47 @@
     "location": "Ujjain",
     "latitude": 23.18239,
     "longitude": 75.77643,
-    "fetched_at": 1786153261.9142563,
+    "fetched_at": 1791449286.4444196,
     "weather_data": {
+      "v": 2,
       "place": "Ujjain",
-      "admin": null,
-      "temp_now": 24,
-      "humidity": 92,
-      "code": 3,
-      "today_max": 30,
-      "today_min": 24,
-      "rain_today": 33,
-      "rain_tomorrow": 78,
+      "admin": "Madhya Pradesh",
+      "observed_at": "2026-10-08T14:15",
+      "temp_now": 34,
+      "feels_like": 35,
+      "humidity": 29,
+      "wind_now": 8,
+      "code": 0,
+      "today_max": 34,
+      "today_min": 22,
+      "rain_today": 0,
+      "rain_tomorrow": 0,
+      "days": [
+        {
+          "date": "2026-10-08",
+          "max": 34,
+          "min": 22,
+          "rain": 0,
+          "code": 0,
+          "wind_max": 9
+        },
+        {
+          "date": "2026-10-09",
+          "max": 33,
+          "min": 23,
+          "rain": 0,
+          "code": 0,
+          "wind_max": 12
+        },
+        {
+          "date": "2026-10-10",
+          "max": 33,
+          "min": 22,
+          "rain": 0,
+          "code": 0,
+          "wind_max": 10
+        }
+      ],
       "source": "Open-Meteo"
     }
   },
@@ -75,17 +195,47 @@
     "location": "Jalgaon",
     "latitude": 21.00292,
     "longitude": 75.56602,
-    "fetched_at": 1786153262.521308,
+    "fetched_at": 1792748442.6794636,
     "weather_data": {
+      "v": 2,
       "place": "Jalgaon",
-      "admin": null,
-      "temp_now": 25,
-      "humidity": 81,
-      "code": 1,
-      "today_max": 31,
+      "admin": "Maharashtra",
+      "observed_at": "2026-10-23T15:00",
+      "temp_now": 34,
+      "feels_like": 36,
+      "humidity": 38,
+      "wind_now": 5,
+      "code": 0,
+      "today_max": 34,
       "today_min": 25,
-      "rain_today": 69,
-      "rain_tomorrow": 67,
+      "rain_today": 22,
+      "rain_tomorrow": 2,
+      "days": [
+        {
+          "date": "2026-10-23",
+          "max": 34,
+          "min": 25,
+          "rain": 22,
+          "code": 51,
+          "wind_max": 10
+        },
+        {
+          "date": "2026-10-24",
+          "max": 34,
+          "min": 25,
+          "rain": 2,
+          "code": 1,
+          "wind_max": 10
+        },
+        {
+          "date": "2026-10-25",
+          "max": 34,
+          "min": 23,
+          "rain": 0,
+          "code": 0,
+          "wind_max": 12
+        }
+      ],
       "source": "Open-Meteo"
     }
   },
@@ -93,17 +243,47 @@
     "location": "Jaipur",
     "latitude": 26.91962,
     "longitude": 75.78781,
-    "fetched_at": 1786153263.1011596,
+    "fetched_at": 1791397985.6100996,
     "weather_data": {
+      "v": 2,
       "place": "Jaipur",
       "admin": null,
-      "temp_now": 25,
-      "humidity": 92,
+      "observed_at": "2026-10-08T00:00",
+      "temp_now": 27,
+      "feels_like": 26,
+      "humidity": 41,
+      "wind_now": 11,
       "code": 0,
-      "today_max": 31,
+      "today_max": 35,
       "today_min": 25,
-      "rain_today": 79,
-      "rain_tomorrow": 73,
+      "rain_today": 0,
+      "rain_tomorrow": 0,
+      "days": [
+        {
+          "date": "2026-10-07",
+          "max": 35,
+          "min": 25,
+          "rain": 0,
+          "code": 1,
+          "wind_max": 12
+        },
+        {
+          "date": "2026-10-08",
+          "max": 34,
+          "min": 25,
+          "rain": 0,
+          "code": 0,
+          "wind_max": 14
+        },
+        {
+          "date": "2026-10-09",
+          "max": 34,
+          "min": 24,
+          "rain": 0,
+          "code": 0,
+          "wind_max": 13
+        }
+      ],
       "source": "Open-Meteo"
     }
   },
@@ -111,17 +291,47 @@
     "location": "Nagpur",
     "latitude": 21.14631,
     "longitude": 79.08491,
-    "fetched_at": 1786153263.706472,
+    "fetched_at": 1791397987.3895311,
     "weather_data": {
+      "v": 2,
       "place": "Nagpur",
       "admin": null,
-      "temp_now": 25,
-      "humidity": 93,
-      "code": 3,
-      "today_max": 30,
-      "today_min": 24,
-      "rain_today": 98,
-      "rain_tomorrow": 92,
+      "observed_at": "2026-10-08T00:00",
+      "temp_now": 27,
+      "feels_like": 31,
+      "humidity": 65,
+      "wind_now": 3,
+      "code": 0,
+      "today_max": 36,
+      "today_min": 26,
+      "rain_today": 29,
+      "rain_tomorrow": 4,
+      "days": [
+        {
+          "date": "2026-10-07",
+          "max": 36,
+          "min": 26,
+          "rain": 29,
+          "code": 80,
+          "wind_max": 10
+        },
+        {
+          "date": "2026-10-08",
+          "max": 35,
+          "min": 24,
+          "rain": 4,
+          "code": 51,
+          "wind_max": 8
+        },
+        {
+          "date": "2026-10-09",
+          "max": 35,
+          "min": 25,
+          "rain": 0,
+          "code": 1,
+          "wind_max": 12
+        }
+      ],
       "source": "Open-Meteo"
     }
   },
@@ -129,17 +339,47 @@
     "location": "Kheti",
     "latitude": 29.61251,
     "longitude": 79.94088,
-    "fetched_at": 1786153264.3375914,
+    "fetched_at": 1791397988.3865566,
     "weather_data": {
+      "v": 2,
       "place": "Kheti",
       "admin": null,
-      "temp_now": 19,
-      "humidity": 98,
+      "observed_at": "2026-10-08T00:00",
+      "temp_now": 12,
+      "feels_like": 12,
+      "humidity": 100,
+      "wind_now": 3,
       "code": 3,
-      "today_max": 27,
-      "today_min": 18,
-      "rain_today": 70,
-      "rain_tomorrow": 97,
+      "today_max": 20,
+      "today_min": 12,
+      "rain_today": 100,
+      "rain_tomorrow": 49,
+      "days": [
+        {
+          "date": "2026-10-07",
+          "max": 20,
+          "min": 12,
+          "rain": 100,
+          "code": 95,
+          "wind_max": 6
+        },
+        {
+          "date": "2026-10-08",
+          "max": 22,
+          "min": 12,
+          "rain": 49,
+          "code": 3,
+          "wind_max": 9
+        },
+        {
+          "date": "2026-10-09",
+          "max": 17,
+          "min": 11,
+          "rain": 100,
+          "code": 95,
+          "wind_max": 5
+        }
+      ],
       "source": "Open-Meteo"
     }
   },
@@ -147,17 +387,47 @@
     "location": "Aanislag",
     "latitude": 13.0748,
     "longitude": 123.703,
-    "fetched_at": 1786153264.9433823,
+    "fetched_at": 1791397989.3407428,
     "weather_data": {
+      "v": 2,
       "place": "Aanislag",
       "admin": null,
-      "temp_now": 27,
-      "humidity": 95,
-      "code": 51,
-      "today_max": 28,
-      "today_min": 24,
-      "rain_today": 100,
+      "observed_at": "2026-10-08T00:00",
+      "temp_now": 23,
+      "feels_like": 28,
+      "humidity": 98,
+      "wind_now": 5,
+      "code": 3,
+      "today_max": 31,
+      "today_min": 23,
+      "rain_today": 81,
       "rain_tomorrow": 100,
+      "days": [
+        {
+          "date": "2026-10-07",
+          "max": 31,
+          "min": 23,
+          "rain": 81,
+          "code": 55,
+          "wind_max": 14
+        },
+        {
+          "date": "2026-10-08",
+          "max": 29,
+          "min": 23,
+          "rain": 100,
+          "code": 95,
+          "wind_max": 14
+        },
+        {
+          "date": "2026-10-09",
+          "max": 28,
+          "min": 24,
+          "rain": 94,
+          "code": 95,
+          "wind_max": 12
+        }
+      ],
       "source": "Open-Meteo"
     }
   },
@@ -165,17 +435,671 @@
     "location": "Grain",
     "latitude": 51.45591,
     "longitude": 0.71126,
-    "fetched_at": 1786153265.5210204,
+    "fetched_at": 1791397990.2530687,
     "weather_data": {
+      "v": 2,
       "place": "Grain",
       "admin": null,
-      "temp_now": 14,
-      "humidity": 68,
-      "code": 0,
-      "today_max": 26,
-      "today_min": 13,
+      "observed_at": "2026-10-08T00:00",
+      "temp_now": 12,
+      "feels_like": 8,
+      "humidity": 88,
+      "wind_now": 27,
+      "code": 3,
+      "today_max": 16,
+      "today_min": 12,
+      "rain_today": 100,
+      "rain_tomorrow": 54,
+      "days": [
+        {
+          "date": "2026-10-07",
+          "max": 16,
+          "min": 12,
+          "rain": 100,
+          "code": 61,
+          "wind_max": 28
+        },
+        {
+          "date": "2026-10-08",
+          "max": 14,
+          "min": 8,
+          "rain": 54,
+          "code": 51,
+          "wind_max": 26
+        },
+        {
+          "date": "2026-10-09",
+          "max": 18,
+          "min": 10,
+          "rain": 65,
+          "code": 61,
+          "wind_max": 32
+        }
+      ],
+      "source": "Open-Meteo"
+    }
+  },
+  "37.87,32.48": {
+    "location": "Konya",
+    "latitude": 37.87135,
+    "longitude": 32.48464,
+    "fetched_at": 1791397991.1528094,
+    "weather_data": {
+      "v": 2,
+      "place": "Konya",
+      "admin": null,
+      "observed_at": "2026-10-08T00:00",
+      "temp_now": 13,
+      "feels_like": 11,
+      "humidity": 67,
+      "wind_now": 5,
+      "code": 3,
+      "today_max": 20,
+      "today_min": 9,
       "rain_today": 0,
+      "rain_tomorrow": 3,
+      "days": [
+        {
+          "date": "2026-10-07",
+          "max": 20,
+          "min": 9,
+          "rain": 0,
+          "code": 2,
+          "wind_max": 8
+        },
+        {
+          "date": "2026-10-08",
+          "max": 21,
+          "min": 10,
+          "rain": 3,
+          "code": 3,
+          "wind_max": 7
+        },
+        {
+          "date": "2026-10-09",
+          "max": 22,
+          "min": 10,
+          "rain": 0,
+          "code": 2,
+          "wind_max": 7
+        }
+      ],
+      "source": "Open-Meteo"
+    }
+  },
+  "47.51,12.33": {
+    "location": "Going",
+    "latitude": 47.51332,
+    "longitude": 12.33164,
+    "fetched_at": 1791397992.1167636,
+    "weather_data": {
+      "v": 2,
+      "place": "Going",
+      "admin": null,
+      "observed_at": "2026-10-08T00:00",
+      "temp_now": 13,
+      "feels_like": 11,
+      "humidity": 66,
+      "wind_now": 7,
+      "code": 1,
+      "today_max": 20,
+      "today_min": 5,
+      "rain_today": 3,
+      "rain_tomorrow": 100,
+      "days": [
+        {
+          "date": "2026-10-07",
+          "max": 20,
+          "min": 5,
+          "rain": 3,
+          "code": 45,
+          "wind_max": 7
+        },
+        {
+          "date": "2026-10-08",
+          "max": 19,
+          "min": 10,
+          "rain": 100,
+          "code": 95,
+          "wind_max": 9
+        },
+        {
+          "date": "2026-10-09",
+          "max": 13,
+          "min": 8,
+          "rain": 98,
+          "code": 61,
+          "wind_max": 4
+        }
+      ],
+      "source": "Open-Meteo"
+    }
+  },
+  "41.37,25.24": {
+    "location": "Kitna",
+    "latitude": 41.36579,
+    "longitude": 25.23592,
+    "fetched_at": 1791397993.0688045,
+    "weather_data": {
+      "v": 2,
+      "place": "Kitna",
+      "admin": null,
+      "observed_at": "2026-10-08T00:00",
+      "temp_now": 11,
+      "feels_like": 10,
+      "humidity": 87,
+      "wind_now": 4,
+      "code": 2,
+      "today_max": 24,
+      "today_min": 6,
+      "rain_today": 0,
+      "rain_tomorrow": 0,
+      "days": [
+        {
+          "date": "2026-10-07",
+          "max": 24,
+          "min": 6,
+          "rain": 0,
+          "code": 3,
+          "wind_max": 8
+        },
+        {
+          "date": "2026-10-08",
+          "max": 24,
+          "min": 7,
+          "rain": 0,
+          "code": 45,
+          "wind_max": 15
+        },
+        {
+          "date": "2026-10-09",
+          "max": 24,
+          "min": 10,
+          "rain": 0,
+          "code": 45,
+          "wind_max": 12
+        }
+      ],
+      "source": "Open-Meteo"
+    }
+  },
+  "33.57,-86.05": {
+    "location": "Talladega Municipal Airport",
+    "latitude": 33.5714,
+    "longitude": -86.05235,
+    "fetched_at": 1791396499.7747474,
+    "weather_data": {
+      "v": 2,
+      "place": "Talladega Municipal Airport",
+      "admin": null,
+      "observed_at": "2026-10-07T23:30",
+      "temp_now": 28,
+      "feels_like": 29,
+      "humidity": 39,
+      "wind_now": 7,
+      "code": 0,
+      "today_max": 29,
+      "today_min": 12,
+      "rain_today": 0,
+      "rain_tomorrow": 0,
+      "days": [
+        {
+          "date": "2026-10-07",
+          "max": 29,
+          "min": 12,
+          "rain": 0,
+          "code": 0,
+          "wind_max": 14
+        },
+        {
+          "date": "2026-10-08",
+          "max": 31,
+          "min": 13,
+          "rain": 0,
+          "code": 3,
+          "wind_max": 6
+        },
+        {
+          "date": "2026-10-09",
+          "max": 32,
+          "min": 17,
+          "rain": 0,
+          "code": 3,
+          "wind_max": 17
+        }
+      ],
+      "source": "Open-Meteo"
+    }
+  },
+  "-4.35,144.09": {
+    "location": "Punyaten",
+    "latitude": -4.34605,
+    "longitude": 144.08649,
+    "fetched_at": 1791396500.7143092,
+    "weather_data": {
+      "v": 2,
+      "place": "Punyaten",
+      "admin": null,
+      "observed_at": "2026-10-07T23:30",
+      "temp_now": 24,
+      "feels_like": 28,
+      "humidity": 96,
+      "wind_now": 4,
+      "code": 0,
+      "today_max": 32,
+      "today_min": 24,
+      "rain_today": 84,
+      "rain_tomorrow": 27,
+      "days": [
+        {
+          "date": "2026-10-07",
+          "max": 32,
+          "min": 24,
+          "rain": 84,
+          "code": 51,
+          "wind_max": 10
+        },
+        {
+          "date": "2026-10-08",
+          "max": 32,
+          "min": 23,
+          "rain": 27,
+          "code": 51,
+          "wind_max": 9
+        },
+        {
+          "date": "2026-10-09",
+          "max": 34,
+          "min": 23,
+          "rain": 53,
+          "code": 80,
+          "wind_max": 12
+        }
+      ],
+      "source": "Open-Meteo"
+    }
+  },
+  "32.11,76.48": {
+    "location": "Neār",
+    "latitude": 32.10973,
+    "longitude": 76.48053,
+    "fetched_at": 1791396502.1080132,
+    "weather_data": {
+      "v": 2,
+      "place": "Neār",
+      "admin": null,
+      "observed_at": "2026-10-07T23:30",
+      "temp_now": 19,
+      "feels_like": 19,
+      "humidity": 62,
+      "wind_now": 2,
+      "code": 1,
+      "today_max": 24,
+      "today_min": 18,
+      "rain_today": 62,
       "rain_tomorrow": 2,
+      "days": [
+        {
+          "date": "2026-10-07",
+          "max": 24,
+          "min": 18,
+          "rain": 62,
+          "code": 53,
+          "wind_max": 8
+        },
+        {
+          "date": "2026-10-08",
+          "max": 22,
+          "min": 18,
+          "rain": 2,
+          "code": 51,
+          "wind_max": 5
+        },
+        {
+          "date": "2026-10-09",
+          "max": 24,
+          "min": 16,
+          "rain": 12,
+          "code": 51,
+          "wind_max": 8
+        }
+      ],
+      "source": "Open-Meteo"
+    }
+  },
+  "19.06,109.67": {
+    "location": "Yahan",
+    "latitude": 19.06109,
+    "longitude": 109.67218,
+    "fetched_at": 1791396503.2107797,
+    "weather_data": {
+      "v": 2,
+      "place": "Yahan",
+      "admin": null,
+      "observed_at": "2026-10-07T23:30",
+      "temp_now": 21,
+      "feels_like": 25,
+      "humidity": 97,
+      "wind_now": 2,
+      "code": 1,
+      "today_max": 26,
+      "today_min": 21,
+      "rain_today": 100,
+      "rain_tomorrow": 98,
+      "days": [
+        {
+          "date": "2026-10-07",
+          "max": 26,
+          "min": 21,
+          "rain": 100,
+          "code": 80,
+          "wind_max": 10
+        },
+        {
+          "date": "2026-10-08",
+          "max": 26,
+          "min": 21,
+          "rain": 98,
+          "code": 95,
+          "wind_max": 14
+        },
+        {
+          "date": "2026-10-09",
+          "max": 25,
+          "min": 22,
+          "rain": 100,
+          "code": 95,
+          "wind_max": 9
+        }
+      ],
+      "source": "Open-Meteo"
+    }
+  },
+  "21.15,79.09": {
+    "location": null,
+    "latitude": 21.15,
+    "longitude": 79.09,
+    "fetched_at": 1791449287.29613,
+    "weather_data": {
+      "v": 2,
+      "place": null,
+      "admin": null,
+      "observed_at": "2026-10-08T14:15",
+      "temp_now": 35,
+      "feels_like": 36,
+      "humidity": 28,
+      "wind_now": 6,
+      "code": 1,
+      "today_max": 35,
+      "today_min": 25,
+      "rain_today": 8,
+      "rain_tomorrow": 0,
+      "days": [
+        {
+          "date": "2026-10-08",
+          "max": 35,
+          "min": 25,
+          "rain": 8,
+          "code": 51,
+          "wind_max": 7
+        },
+        {
+          "date": "2026-10-09",
+          "max": 36,
+          "min": 25,
+          "rain": 0,
+          "code": 1,
+          "wind_max": 9
+        },
+        {
+          "date": "2026-10-10",
+          "max": 35,
+          "min": 25,
+          "rain": 0,
+          "code": 0,
+          "wind_max": 8
+        }
+      ],
+      "source": "Open-Meteo"
+    }
+  },
+  "10.96,78.08": {
+    "location": "Karur",
+    "latitude": 10.95771,
+    "longitude": 78.08095,
+    "fetched_at": 1791396502.135874,
+    "weather_data": {
+      "v": 2,
+      "place": "Karur",
+      "admin": "Tamil Nadu",
+      "observed_at": "2026-10-07T23:30",
+      "temp_now": 28,
+      "feels_like": 31,
+      "humidity": 74,
+      "wind_now": 12,
+      "code": 3,
+      "today_max": 33,
+      "today_min": 24,
+      "rain_today": 80,
+      "rain_tomorrow": 96,
+      "days": [
+        {
+          "date": "2026-10-07",
+          "max": 33,
+          "min": 24,
+          "rain": 80,
+          "code": 53,
+          "wind_max": 13
+        },
+        {
+          "date": "2026-10-08",
+          "max": 33,
+          "min": 25,
+          "rain": 96,
+          "code": 53,
+          "wind_max": 18
+        },
+        {
+          "date": "2026-10-09",
+          "max": 33,
+          "min": 24,
+          "rain": 94,
+          "code": 81,
+          "wind_max": 15
+        }
+      ],
+      "source": "Open-Meteo"
+    }
+  },
+  "28.61,77.2": {
+    "location": "Teen Mūrti",
+    "latitude": 28.60524,
+    "longitude": 77.20025,
+    "fetched_at": 1791396504.6431499,
+    "weather_data": {
+      "v": 2,
+      "place": "Teen Mūrti",
+      "admin": "National Capital Territory of Delhi",
+      "observed_at": "2026-10-07T23:30",
+      "temp_now": 25,
+      "feels_like": 28,
+      "humidity": 82,
+      "wind_now": 8,
+      "code": 0,
+      "today_max": 35,
+      "today_min": 25,
+      "rain_today": 31,
+      "rain_tomorrow": 16,
+      "days": [
+        {
+          "date": "2026-10-07",
+          "max": 35,
+          "min": 25,
+          "rain": 31,
+          "code": 51,
+          "wind_max": 14
+        },
+        {
+          "date": "2026-10-08",
+          "max": 34,
+          "min": 23,
+          "rain": 16,
+          "code": 51,
+          "wind_max": 12
+        },
+        {
+          "date": "2026-10-09",
+          "max": 31,
+          "min": 23,
+          "rain": 25,
+          "code": 51,
+          "wind_max": 14
+        }
+      ],
+      "source": "Open-Meteo"
+    }
+  },
+  "20.0,73.79": {
+    "location": "Nashik",
+    "latitude": 19.99727,
+    "longitude": 73.79096,
+    "fetched_at": 1792748444.5444224,
+    "weather_data": {
+      "v": 2,
+      "place": "Nashik",
+      "admin": "Maharashtra",
+      "observed_at": "2026-10-23T15:00",
+      "temp_now": 31,
+      "feels_like": 33,
+      "humidity": 41,
+      "wind_now": 6,
+      "code": 1,
+      "today_max": 32,
+      "today_min": 23,
+      "rain_today": 25,
+      "rain_tomorrow": 47,
+      "days": [
+        {
+          "date": "2026-10-23",
+          "max": 32,
+          "min": 23,
+          "rain": 25,
+          "code": 51,
+          "wind_max": 12
+        },
+        {
+          "date": "2026-10-24",
+          "max": 31,
+          "min": 22,
+          "rain": 47,
+          "code": 51,
+          "wind_max": 10
+        },
+        {
+          "date": "2026-10-25",
+          "max": 32,
+          "min": 21,
+          "rain": 2,
+          "code": 3,
+          "wind_max": 12
+        }
+      ],
+      "source": "Open-Meteo"
+    }
+  },
+  "25.59,85.14": {
+    "location": "Patna",
+    "latitude": 25.5941,
+    "longitude": 85.1376,
+    "fetched_at": 1792748445.2396038,
+    "weather_data": {
+      "v": 2,
+      "place": "Patna",
+      "admin": "Bihar",
+      "observed_at": "2026-10-23T15:00",
+      "temp_now": 30,
+      "feels_like": 31,
+      "humidity": 48,
+      "wind_now": 10,
+      "code": 0,
+      "today_max": 30,
+      "today_min": 22,
+      "rain_today": 0,
+      "rain_tomorrow": 0,
+      "days": [
+        {
+          "date": "2026-10-23",
+          "max": 30,
+          "min": 22,
+          "rain": 0,
+          "code": 2,
+          "wind_max": 10
+        },
+        {
+          "date": "2026-10-24",
+          "max": 30,
+          "min": 21,
+          "rain": 0,
+          "code": 0,
+          "wind_max": 8
+        },
+        {
+          "date": "2026-10-25",
+          "max": 30,
+          "min": 21,
+          "rain": 0,
+          "code": 0,
+          "wind_max": 7
+        }
+      ],
+      "source": "Open-Meteo"
+    }
+  },
+  "25.32,83.01": {
+    "location": "Varanasi",
+    "latitude": 25.31668,
+    "longitude": 83.01041,
+    "fetched_at": 1792748446.4093423,
+    "weather_data": {
+      "v": 2,
+      "place": "Varanasi",
+      "admin": "Uttar Pradesh",
+      "observed_at": "2026-10-23T15:00",
+      "temp_now": 30,
+      "feels_like": 31,
+      "humidity": 47,
+      "wind_now": 7,
+      "code": 0,
+      "today_max": 30,
+      "today_min": 22,
+      "rain_today": 0,
+      "rain_tomorrow": 0,
+      "days": [
+        {
+          "date": "2026-10-23",
+          "max": 30,
+          "min": 22,
+          "rain": 0,
+          "code": 0,
+          "wind_max": 7
+        },
+        {
+          "date": "2026-10-24",
+          "max": 30,
+          "min": 21,
+          "rain": 0,
+          "code": 0,
+          "wind_max": 7
+        },
+        {
+          "date": "2026-10-25",
+          "max": 31,
+          "min": 22,
+          "rain": 0,
+          "code": 0,
+          "wind_max": 7
+        }
+      ],
       "source": "Open-Meteo"
     }
   }
