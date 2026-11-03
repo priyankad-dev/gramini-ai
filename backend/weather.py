@@ -65,7 +65,7 @@ STALE_MAX = 24 * 60 * 60     # but serve up to a day old rather than nothing
 
 # Where to look when the user names no place. Pune, because that is where the
 # event is; a real deployment would use the phone's location.
-DEFAULT_PLACE = {"name": "Pune", "lat": 18.5204, "lon": 73.8567}
+DEFAULT_PLACE = {"name": "Pune", "admin": "Maharashtra", "lat": 18.5204, "lon": 73.8567}
 
 _lock = threading.Lock()
 
@@ -851,6 +851,7 @@ def _fetch_weatherapi(place: dict[str, Any]) -> dict[str, Any] | None:
         return _WAPI_TO_WMO.get(code, 3)
 
     current = data["current"]
+    region = ((data.get("location") or {}).get("region") or "").strip() or None
     days = []
     for entry in (data.get("forecast") or {}).get("forecastday") or []:
         day = entry.get("day") or {}
@@ -866,7 +867,7 @@ def _fetch_weatherapi(place: dict[str, Any]) -> dict[str, Any] | None:
     return {
         "v": REPORT_VERSION,
         "place": place.get("name"),
-        "admin": place.get("admin"),
+        "admin": place.get("admin") or region,
         "observed_at": current.get("last_updated"),
         "temp_now": rounded(current.get("temp_c")),
         "feels_like": rounded(current.get("feelslike_c")),
@@ -1091,6 +1092,26 @@ def _speech(report: dict[str, Any], lang: str, day: str, farm: str | None) -> st
     return describe(report, lang, day=day, farm=farm)
 
 
+def _identify(report: dict[str, Any], place: dict[str, Any]) -> dict[str, Any]:
+    """Stamp a report with the place this request actually resolved.
+
+    The cache is keyed by rounded coordinates, so one entry serves every request
+    that lands in the same square kilometre - "पुणे" and a phone standing in
+    Pune share it. Whoever wrote the entry first used to decide the name and
+    state everyone else heard: a named town was answered as "your area", and a
+    report saved without a state kept returning `admin: null`. The forecast
+    numbers belong to the coordinates; the name, state and coordinates belong
+    to this request.
+    """
+    return {
+        **report,
+        "place": place.get("name"),          # None = the user's own location
+        "admin": place.get("admin") or report.get("admin"),
+        "latitude": place.get("lat"),
+        "longitude": place.get("lon"),
+    }
+
+
 def answer(
     place_name: str | None,
     lang: str,
@@ -1138,7 +1159,10 @@ def answer(
                     "  geocoder unreachable - answering %r from cache (%.0f min old)",
                     entry.get("location"), age / 60,
                 )
-                report = entry["weather_data"]
+                report = _identify(entry["weather_data"], {
+                    "name": entry.get("location"),
+                    "lat": entry.get("latitude"), "lon": entry.get("longitude"),
+                })
                 note = _STALE_NOTE.get(lang) or _STALE_NOTE["hi"]
                 return {
                     "report": report, "cached": True, "stale": True,
@@ -1166,7 +1190,7 @@ def answer(
 
     if usable and age < CACHE_TTL:
         log.info("  CACHE HIT (%.0fs old) - no network request", age)
-        report = entry["weather_data"]
+        report = _identify(entry["weather_data"], place)
         return {"report": report, "cached": True, "cache_age_seconds": round(age),
                 "speech": _speech(report, lang, day, farm)}
 
@@ -1175,6 +1199,7 @@ def answer(
     report = fetch(place)
 
     if report:
+        report = _identify(report, place)
         _write_cached(place, report)
         return {"report": report, "cached": False, "cache_age_seconds": 0,
                 "speech": _speech(report, lang, day, farm)}
@@ -1182,7 +1207,7 @@ def answer(
     # Provider failed. Anything cached beats nothing, as long as we say so.
     if usable and age < STALE_MAX:
         log.warning("  provider failed - serving cached forecast %.0f minutes old", age / 60)
-        report = entry["weather_data"]
+        report = _identify(entry["weather_data"], place)
         note = _STALE_NOTE.get(lang) or _STALE_NOTE["hi"]
         return {
             "report": report,
